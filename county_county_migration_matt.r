@@ -466,13 +466,13 @@ migration_1993 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandli
 ##### Order Observations #####
 migration_1993 <- migration_1993[order(org_state, org_county, des_state, des_county)]
 
-########## 1992 - 2006 (Minus 1993) ##########
+########## 1992 - 1994 (Minus 1993) ##########
 
 ##### Specify Years #####
-editions <- c("1992to1993", "1994to1995", "1995to1996", "1996to1997", "1997to1998", "1998to1999", "1999to2000", "2000to2001", "2001to2002", "2002to2003", "2003to2004")
+editions <- c("1992to1993", "1994to1995")
 
 ##### Open Data #####
-migration_19922003 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
+migration_19921994 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
 
 	# Specify Directory #
   directory <- paste0("./MigData/",editions[i],"/", editions[i],"CountyMigration")
@@ -505,10 +505,10 @@ migration_19922003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
 			data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
 			data_table <- data_table[, file_name := state_files[j]] # File Name
-			data_table2 <- data_table[grepl("County Non-Migrant|County Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+			data_table2 <- filter(data_table, org_state == des_state & org_county == des_county| grepl("Non-Migrant|Non-migrant", X__6))  %>% # Keep non-migrants 	
 			  mutate(org_state = des_state, # Origin state
 			         org_county = des_county) # Origin county  
-			data_table3 <- data_table[which(org_state == "00"),] %>% # Keep non-migrants 	
+			data_table3 <- filter(data_table, org_state == "00") %>% # Keep non-migrants 	
 			  mutate(org_state = 99, # Origin state
 			         org_county = 999)
 			tots <- data_table %>%
@@ -548,30 +548,29 @@ migration_19922003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 		  data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
 		  data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
 		  data_table <- data_table[, file_name := state_files[j]] # File Name
-		  data_table2 <- data_table[grepl("County Non-Migrant|County Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+		  data_table2 <- filter(data_table, org_state == des_state & org_county == des_county| grepl("Non-Migrant|Non-migrant", X__6))  %>% # Keep non-migrants 	
 		    mutate(des_state = org_state, # Origin state
 		           des_county = org_county) # Origin county 
-		  data_table3 <- data_table[which(des_state == "00"),] %>% # Keep non-migrants 	
-		    mutate(des_state = "99", # Origin state
-		           des_county = "999")
-		  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Total Migrant|Total migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
-		  
+		  data_table3 <- filter(data_table, des_state == "00") %>% # Keep non-migrants 	
+		    mutate(des_state = 99, # Origin state
+		           des_county = 999)
 		  tots <- data_table %>%
 		    filter(des_state %in% us_states$FIPS_CODE) %>%
 		    group_by(org_state, org_county) %>%
 		    summarise(tot_returns = sum(returns),
-		              tot_exemps = sum(exemptions))
+		              tot_exemps = sum(exemptions)) # Keep non-migrants 	
 		  data_table3 <- left_join(data_table3, tots)
 		  data_table3[is.na(data_table3)] <- 0
 		  data_table3 <- data_table3 %>% 
-		    mutate(returns = returns - tot_returns,
-		           exemptions = exemptions - tot_exemps) %>%
+		    mutate(returns = as.numeric(returns) - tot_returns,
+		           exemptions = as.numeric(exemptions) - tot_exemps) %>%
+		    # mutate(org_state = 99, # Origin state
+		    #        org_county = 999) %>%
 		    select(-tot_returns, -tot_exemps)
 		  
 		  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
 		  data_table <- as.data.table(rbind(data_table, data_table2, data_table3))
 		  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
-		  data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
 		  data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
 		  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
@@ -580,9 +579,122 @@ migration_19922003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 }
 
 ##### Order Observations #####
+migration_19921994 <- migration_19921994[order(org_state, org_county, des_state, des_county, year)]
+
+
+########## 1995 - 2003  ##########
+
+##### Specify Years #####
+editions <- c("1995to1996", "1996to1997", "1997to1998", "1998to1999", "1999to2000", "2000to2001", "2001to2002", "2002to2003", "2003to2004")
+
+##### Open Data #####
+migration_19952003 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
+  
+  # Specify Directory #
+  directory <- paste0("./MigData/",editions[i],"/", editions[i],"CountyMigration")
+  directory2 <- paste0("MigData/",editions[i],"/", editions[i],"CountyMigration/")
+  state_files <- list.files(directory, pattern = "*.xls$", recursive = TRUE) # List Files
+  state_files <- paste0(directory2, state_files)
+  
+  foreach(j = 1:length(state_files), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo", "tidyverse")) %dopar% {
+    
+    # Specify Flows #
+    in_out_flow <- state_files[j] # Specify Flow
+    in_out_flow <- unlist(strsplit(in_out_flow, "\\."))[[1]] # String Split
+    in_out_flow <- toupper(in_out_flow) # Upper Case
+    if (substr(editions[i], 1, 4) %in% c("1995","2000")) {in_out_flow <- str_sub(in_out_flow, -2, -2)} else {in_out_flow <- str_sub(in_out_flow, -1, -1)} # Select Last Character
+    
+    if (in_out_flow == "I") {
+      
+      # Inflows #
+      data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
+      data_table <- data.table(data_table) # Specify Data Table Object
+      data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
+      setnames(data_table, "X__1", "des_state") # Specify Column Names
+      setnames(data_table, "X__2", "des_county") # Specify Column Names
+      setnames(data_table, "X__3", "org_state") # Specify Column Names
+      setnames(data_table, "X__4", "org_county") # Specify Column Names
+      setnames(data_table, "X__7", "returns") # Specify Column Names
+      setnames(data_table, "X__8", "exemptions") # Specify Column Names
+      data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
+      data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
+      data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
+      data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
+      data_table <- data_table[, file_name := state_files[j]] # File Name
+      
+      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+        mutate(org_state = des_state, # Origin state
+               org_county = des_county) # Origin county          
+      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+        filter(org_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+        group_by(des_state, des_county) %>%
+        summarise(tot_returns = sum(as.numeric(returns)),
+                  tot_exemps = sum(as.numeric(exemptions)))
+      tots <- filter(data_table, org_state == "96", org_county == "000", !des_county == "000" )  %>% # Keep non-migrants 	
+        left_join(.,data_table3)
+      tots[is.na(tots)] <- 0
+      tots <- tots %>% 
+        mutate(returns = as.numeric(returns) - tot_returns,
+               exemptions = as.numeric(exemptions) - tot_exemps) %>%
+        mutate(org_state = 99, # Origin state
+               org_county = 999) %>%
+        select(-tot_returns, -tot_exemps)
+      
+      data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+      data_table <- as.data.table(rbind(data_table, data_table2, tots))
+      data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+      data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+      data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
+      
+    } else {
+      
+      # Outflows #
+      data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
+      data_table <- data.table(data_table) # Specify Data Table Object
+      data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
+      setnames(data_table, "X__1", "org_state") # Specify Column Names
+      setnames(data_table, "X__2", "org_county") # Specify Column Names
+      setnames(data_table, "X__3", "des_state") # Specify Column Names
+      setnames(data_table, "X__4", "des_county") # Specify Column Names
+      setnames(data_table, "X__7", "returns") # Specify Column Names
+      setnames(data_table, "X__8", "exemptions") # Specify Column Names
+      data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
+      data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
+      data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
+      data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
+      data_table <- data_table[, file_name := state_files[j]] # File Name
+      
+      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+        mutate(des_state = org_state, # Origin state
+               des_county = org_county) # Origin county          
+      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+        filter(des_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+        group_by(org_state, org_county) %>%
+        summarise(tot_returns = sum(as.numeric(returns)),
+                  tot_exemps = sum(as.numeric(exemptions)))
+      tots <- filter(data_table, des_state == "96", des_county == "000", !org_county == "000" )  %>% # Keep non-migrants 	
+        left_join(.,data_table3)
+      tots[is.na(tots)] <- 0
+      tots <- tots %>% 
+        mutate(returns = as.numeric(returns) - tot_returns,
+               exemptions = as.numeric(exemptions) - tot_exemps) %>%
+        mutate(des_state = 99, # Origin state
+               des_county = 999) %>%
+        select(-tot_returns, -tot_exemps)
+      
+      data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+      data_table <- as.data.table(rbind(data_table, data_table2, tots))
+      data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+      data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
+      data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
+      
+    }
+  }
+}
+
+##### Order Observations #####
 migration_19922003 <- migration_19922003[order(org_state, org_county, des_state, des_county, year)]
 
-########## 1992 - 2006 (Minus 1993) ##########
 
 ##### Specify Years #####
 editions <- c("0405", "0506", "0607")
@@ -610,42 +722,82 @@ migration_20042006 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
       data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
       data_table <- data.table(data_table) # Specify Data Table Object
       data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
-      data_table <- data_table[grepl("Same State|Same Region|Different Region|Region[[:space:]][0-9]{1}|All Migration Flows|Tot Mig|Total Mig|Foreign|Overseas", X__6) == FALSE] # Remove Elements		
       setnames(data_table, "X__1", "des_state") # Specify Column Names
       setnames(data_table, "X__2", "des_county") # Specify Column Names
       setnames(data_table, "X__3", "org_state") # Specify Column Names
       setnames(data_table, "X__4", "org_county") # Specify Column Names
       setnames(data_table, "X__7", "returns") # Specify Column Names
       setnames(data_table, "X__8", "exemptions") # Specify Column Names
-      data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
       data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
       data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-      data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
       data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
       data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
       data_table <- data_table[, file_name := state_files[j]] # File Name
-      data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
       
+      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+        mutate(org_state = des_state, # Origin state
+               org_county = des_county) # Origin county          
+      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+        filter(org_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+        group_by(des_state, des_county) %>%
+        summarise(tot_returns = sum(as.numeric(returns)),
+                  tot_exemps = sum(as.numeric(exemptions)))
+      tots <- filter(data_table, org_state == "96", org_county == "000", !des_county == "000" )  %>% # Keep non-migrants 	
+        left_join(.,data_table3)
+        tots[is.na(tots)] <- 0
+        tots <- tots %>% 
+          mutate(returns = as.numeric(returns) - tot_returns,
+                 exemptions = as.numeric(exemptions) - tot_exemps) %>%
+          mutate(org_state = 99, # Origin state
+                 org_county = 999) %>%
+          select(-tot_returns, -tot_exemps)
+
+        data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+        data_table <- as.data.table(rbind(data_table, data_table2, tots))
+        data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+        data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+        data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
+  
     } else {
       
       # Outflows #
       data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
       data_table <- data.table(data_table) # Specify Data Table Object
       data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
-      data_table <- data_table[grepl("Same State|Same Region|Different Region|Region[[:space:]][0-9]{1}|All Migration Flows|Tot Mig|Total Mig|Foreign|Overseas", X__6) == FALSE] # Remove Elements		
       setnames(data_table, "X__1", "org_state") # Specify Column Names
       setnames(data_table, "X__2", "org_county") # Specify Column Names
       setnames(data_table, "X__3", "des_state") # Specify Column Names
       setnames(data_table, "X__4", "des_county") # Specify Column Names
       setnames(data_table, "X__7", "returns") # Specify Column Names
       setnames(data_table, "X__8", "exemptions") # Specify Column Names
-      data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
       data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
       data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-      data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
       data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
       data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
       data_table <- data_table[, file_name := state_files[j]] # File Name
+      
+      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+        mutate(des_state = org_state, # Origin state
+               des_county = org_county) # Origin county          
+      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+        filter(des_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+        group_by(org_state, org_county) %>%
+        summarise(tot_returns = sum(as.numeric(returns)),
+                  tot_exemps = sum(as.numeric(exemptions)))
+      tots <- filter(data_table, des_state == "96", des_county == "000", !org_county == "000" )  %>% # Keep non-migrants 	
+        left_join(.,data_table3)
+      tots[is.na(tots)] <- 0
+      tots <- tots %>% 
+        mutate(returns = as.numeric(returns) - tot_returns,
+               exemptions = as.numeric(exemptions) - tot_exemps) %>%
+        mutate(des_state = 99, # Origin state
+               des_county = 999) %>%
+        select(-tot_returns, -tot_exemps)
+      
+      data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+      data_table <- as.data.table(rbind(data_table, data_table2, tots))
+      data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+      data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
       data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
       
     }
@@ -680,44 +832,86 @@ migration_20072008 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 		if (in_out_flow == "I") {
 		
 			# Inflows #
-			data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
-			data_table <- data.table(data_table) # Specify Data Table Object
-			data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
-			data_table <- data_table[grepl("Same State|Same Region|Different Region|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
-			setnames(data_table, "X__1", "des_state") # Specify Column Names
-			setnames(data_table, "X__2", "des_county") # Specify Column Names
-			setnames(data_table, "X__3", "org_state") # Specify Column Names
-			setnames(data_table, "X__4", "org_county") # Specify Column Names
-			setnames(data_table, "X__7", "returns") # Specify Column Names
-			setnames(data_table, "X__8", "exemptions") # Specify Column Names
-			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
-			data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
-			data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-			data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
-			data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
-			data_table <- data_table[, file_name := state_files[j]] # File Name
+		  data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
+		  data_table <- data.table(data_table) # Specify Data Table Object
+		  data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
+		  setnames(data_table, "X__1", "des_state") # Specify Column Names
+		  setnames(data_table, "X__2", "des_county") # Specify Column Names
+		  setnames(data_table, "X__3", "org_state") # Specify Column Names
+		  setnames(data_table, "X__4", "org_county") # Specify Column Names
+		  setnames(data_table, "X__7", "returns") # Specify Column Names
+		  setnames(data_table, "X__8", "exemptions") # Specify Column Names
+		  data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
+		  data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
+		  data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
+		  data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
+		  data_table <- data_table[, file_name := state_files[j]] # File Name
+		  
+		  data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+		    mutate(org_state = des_state, # Origin state
+		           org_county = des_county) # Origin county          
+		  data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+		    filter(org_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+		    group_by(des_state, des_county) %>%
+		    summarise(tot_returns = sum(as.numeric(returns)),
+		              tot_exemps = sum(as.numeric(exemptions)))
+		  tots <- filter(data_table, org_state == "96", org_county == "000", !des_county == "000" )  %>% # Keep non-migrants 	
+		    left_join(.,data_table3)
+		  tots[is.na(tots)] <- 0
+		  tots <- tots %>% 
+		    mutate(returns = as.numeric(returns) - tot_returns,
+		           exemptions = as.numeric(exemptions) - tot_exemps) %>%
+		    mutate(org_state = 99, # Origin state
+		           org_county = 999) %>%
+		    select(-tot_returns, -tot_exemps)
+		  
+		  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+		  data_table <- as.data.table(rbind(data_table, data_table2, tots))
+		  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+		  data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+		  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
 	} else {
 			
 			# Outflows #
-			data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
-			data_table <- data.table(data_table) # Specify Data Table Object
-			data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
-			data_table <- data_table[grepl("Same State|Same Region|Different Region|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements
-			setnames(data_table, "X__1", "org_state") # Specify Column Names
-			setnames(data_table, "X__2", "org_county") # Specify Column Names
-			setnames(data_table, "X__3", "des_state") # Specify Column Names
-			setnames(data_table, "X__4", "des_county") # Specify Column Names
-			setnames(data_table, "X__7", "returns") # Specify Column Names
-			setnames(data_table, "X__8", "exemptions") # Specify Column Names
-			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
-			data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
-			data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-			data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
-			data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
-			data_table <- data_table[, file_name := state_files[j]] # File Name
+	  data_table <- read_excel(state_files[j], sheet = 1, skip = 8, col_names = FALSE) # Open Data
+	  data_table <- data.table(data_table) # Specify Data Table Object
+	  data_table <- data_table[nchar(X__1) == 2 & is.na(X__1) == FALSE] # Remove Headings
+	  setnames(data_table, "X__1", "org_state") # Specify Column Names
+	  setnames(data_table, "X__2", "org_county") # Specify Column Names
+	  setnames(data_table, "X__3", "des_state") # Specify Column Names
+	  setnames(data_table, "X__4", "des_county") # Specify Column Names
+	  setnames(data_table, "X__7", "returns") # Specify Column Names
+	  setnames(data_table, "X__8", "exemptions") # Specify Column Names
+	  data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
+	  data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
+	  data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
+	  data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
+	  data_table <- data_table[, file_name := state_files[j]] # File Name
+	  
+	  data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+	    mutate(des_state = org_state, # Origin state
+	           des_county = org_county) # Origin county          
+	  data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+	    filter(des_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+	    group_by(org_state, org_county) %>%
+	    summarise(tot_returns = sum(as.numeric(returns)),
+	              tot_exemps = sum(as.numeric(exemptions)))
+	  tots <- filter(data_table, des_state == "96", des_county == "000", !org_county == "000" )  %>% # Keep non-migrants 	
+	    left_join(.,data_table3)
+	  tots[is.na(tots)] <- 0
+	  tots <- tots %>% 
+	    mutate(returns = as.numeric(returns) - tot_returns,
+	           exemptions = as.numeric(exemptions) - tot_exemps) %>%
+	    mutate(des_state = 99, # Origin state
+	           des_county = 999) %>%
+	    select(-tot_returns, -tot_exemps)
+	  
+	  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+	  data_table <- as.data.table(rbind(data_table, data_table2, tots))
+	  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+	  data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
+	  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 	
 		}
 	}
@@ -766,63 +960,95 @@ migration_20092010 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table <- data_table[, X__2 := numb_digits_F(X__2, 3), by = "X__2"] # Specify Three Digit County Code
 			data_table <- data_table[, X__3 := numb_digits_F(X__3, 2), by = "X__3"] # Specify Two Digit State Code
 			data_table <- data_table[, X__4 := numb_digits_F(X__4, 3), by = "X__4"] # Specify Three Digit County Code
-			data_table <- data_table[grepl("Same State|Same Region|Different Region|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
 			setnames(data_table, "X__1", "des_state") # Specify Column Names
 			setnames(data_table, "X__2", "des_county") # Specify Column Names
 			setnames(data_table, "X__3", "org_state") # Specify Column Names
 			setnames(data_table, "X__4", "org_county") # Specify Column Names
 			setnames(data_table, "X__7", "returns") # Specify Column Names
 			setnames(data_table, "X__8", "exemptions") # Specify Column Names
-			data_table <- as.data.table(data_table %>% 
-			  mutate(org_state = case_when(
-			    grepl('Tot Mig-US & For', X__6) ~ des_state,
-			    TRUE ~ as.character(org_state)
-			  ),
-			  org_county =case_when(
-			    grepl('Tot Mig-US & For', X__6) ~ des_county,
-			    TRUE ~ as.character(org_county)
-			  )))
-			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
 			data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
 			data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
 			data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
 			data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
 			data_table <- data_table[, file_name := state_files[j]] # File Name
+			data_table2 <- filter(data_table, org_state == des_state, org_county == des_county)
 			
+			data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+			  filter(org_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+			  group_by(des_state, des_county) %>%
+			  summarise(tot_returns = sum(as.numeric(returns)),
+			            tot_exemps = sum(as.numeric(exemptions)))
+			tots <- filter(data_table, org_state == "96", org_county == "000", !des_county == "000" )  %>% # Keep non-migrants 	
+			  left_join(.,data_table3)
+			tots[is.na(tots)] <- 0
+			tots <- tots %>% 
+			  mutate(returns = as.numeric(returns) - tot_returns,
+			         exemptions = as.numeric(exemptions) - tot_exemps) %>%
+			  mutate(org_state = 99, # Origin state
+			         org_county = 999) %>%
+			  select(-tot_returns, -tot_exemps)
+			
+			data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+			data_table <- as.data.table(rbind(data_table, data_table2, tots))
+			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+			data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
+		
+		
 	} else {
 			
 			# Outflows #
-			data_table <- read_excel(state_files[j], sheet = 1, skip = 7, col_names = FALSE) # Open Data
-			data_table <- data.table(data_table) # Specify Data Table Object
-			data_table <- data_table[, X__1 := as.integer(X__1)] # Specify Integer Class
-			data_table <- data_table[, X__1 := as.character(X__1)] # Specify Character Class
-			data_table <- data_table[, X__2 := as.integer(X__2)] # Specify Integer Class
-			data_table <- data_table[, X__2 := as.character(X__2)] # Specify Character Class
-			data_table <- data_table[, X__3 := as.integer(X__3)] # Specify Integer Class
-			data_table <- data_table[, X__3 := as.character(X__3)] # Specify Character Class
-			data_table <- data_table[, X__4 := as.integer(X__4)] # Specify Integer Class
-			data_table <- data_table[, X__4 := as.character(X__4)] # Specify Character Class
-			data_table <- data_table[is.na(X__1) == FALSE & is.na(X__3) == FALSE] # Remove Blanks
-			data_table <- data_table[, X__1 := numb_digits_F(X__1, 2), by = "X__1"] # Specify Two Digit State Code
-			data_table <- data_table[, X__2 := numb_digits_F(X__2, 3), by = "X__2"] # Specify Three Digit County Code
-			data_table <- data_table[, X__3 := numb_digits_F(X__3, 2), by = "X__3"] # Specify Two Digit State Code
-			data_table <- data_table[, X__4 := numb_digits_F(X__4, 3), by = "X__4"] # Specify Three Digit County Code
-			data_table <- data_table[grepl("Same State|Same Region|Different Region|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements
-			setnames(data_table, "X__1", "org_state") # Specify Column Names
-			setnames(data_table, "X__2", "org_county") # Specify Column Names
-			setnames(data_table, "X__3", "des_state") # Specify Column Names
-			setnames(data_table, "X__4", "des_county") # Specify Column Names
-			setnames(data_table, "X__7", "returns") # Specify Column Names
-			setnames(data_table, "X__8", "exemptions") # Specify Column Names
-			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
-			data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
-			data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
-			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-			data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
-			data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
-			data_table <- data_table[, file_name := state_files[j]] # File Name
+	  data_table <- read_excel(state_files[j], sheet = 1, skip = 7, col_names = FALSE) # Open Data
+	  data_table <- data.table(data_table) # Specify Data Table Object
+	  data_table <- data_table[, X__1 := as.integer(X__1)] # Specify Integer Class
+	  data_table <- data_table[, X__1 := as.character(X__1)] # Specify Character Class
+	  data_table <- data_table[, X__2 := as.integer(X__2)] # Specify Integer Class
+	  data_table <- data_table[, X__2 := as.character(X__2)] # Specify Character Class
+	  data_table <- data_table[, X__3 := as.integer(X__3)] # Specify Integer Class
+	  data_table <- data_table[, X__3 := as.character(X__3)] # Specify Character Class
+	  data_table <- data_table[, X__4 := as.integer(X__4)] # Specify Integer Class
+	  data_table <- data_table[, X__4 := as.character(X__4)] # Specify Character Class
+	  data_table <- data_table[is.na(X__1) == FALSE & is.na(X__3) == FALSE] # Remove Blanks
+	  data_table <- data_table[, X__1 := numb_digits_F(X__1, 2), by = "X__1"] # Specify Two Digit State Code
+	  data_table <- data_table[, X__2 := numb_digits_F(X__2, 3), by = "X__2"] # Specify Three Digit County Code
+	  data_table <- data_table[, X__3 := numb_digits_F(X__3, 2), by = "X__3"] # Specify Two Digit State Code
+	  data_table <- data_table[, X__4 := numb_digits_F(X__4, 3), by = "X__4"] # Specify Three Digit County Code
+	  setnames(data_table, "X__1", "org_state") # Specify Column Names
+	  setnames(data_table, "X__2", "org_county") # Specify Column Names
+	  setnames(data_table, "X__3", "des_state") # Specify Column Names
+	  setnames(data_table, "X__4", "des_county") # Specify Column Names
+	  setnames(data_table, "X__7", "returns") # Specify Column Names
+	  setnames(data_table, "X__8", "exemptions") # Specify Column Names
+	  data_table <- data_table[, year := substr(editions[i], 1, 4)] # Specify Year
+	  data_table <- data_table[, year := as.integer(year)] # Specify Integer Class
+	  data_table <- data_table[, returns := as.numeric(returns)] # Specify Numeric Class
+	  data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
+	  data_table <- data_table[, file_name := state_files[j]] # File Name
+	  data_table2 <- filter(data_table, org_state == des_state, org_county == des_county)
 	
+	  data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+	    mutate(des_state = org_state, # Origin state
+	           des_county = org_county) # Origin county          
+	  data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+	    filter(des_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
+	    group_by(org_state, org_county) %>%
+	    summarise(tot_returns = sum(as.numeric(returns)),
+	              tot_exemps = sum(as.numeric(exemptions)))
+	  tots <- filter(data_table, des_state == "96", des_county == "000", !org_county == "000" )  %>% # Keep non-migrants 	
+	    left_join(.,data_table3)
+	  tots[is.na(tots)] <- 0
+	  tots <- tots %>% 
+	    mutate(returns = as.numeric(returns) - tot_returns,
+	           exemptions = as.numeric(exemptions) - tot_exemps) %>%
+	    mutate(des_state = 99, # Origin state
+	           des_county = 999) %>%
+	    select(-tot_returns, -tot_exemps)
+	  
+	  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
+	  data_table <- as.data.table(rbind(data_table, data_table2, tots))
+	  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+	  data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
+	  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 		}
 	}
 }
@@ -919,12 +1145,13 @@ migration_20092010 <- migration_20092010[order(org_state, org_county, des_state,
 #################### Prepare Data ####################
 
 ########## Merge Data ##########
-county_migration_data <- list(migration_19901991, migration_1993, migration_19922003, migration_20042006, migration_20072008, migration_20092010) # List Data Tables
+county_migration_data <- list(migration_19901991, migration_1993, migration_19921994, migration_19952003, migration_20042006, migration_20072008, migration_20092010) # List Data Tables
 county_migration_data <- rbindlist(county_migration_data) # Row Bind Data
 
 ########## Clean Workspace ##########
 rm(migration_19901991) # Remove From Workspace
-rm(migration_19922003) # Remove From Workspace
+rm(migration_19921994) # Remove From Workspace
+rm(migration_19952003) # Remove From Workspace
 rm(migration_20042006) # Remove From Workspace
 rm(migration_1993) # Remove From Workspace
 rm(migration_20072008) # Remove From Workspace
