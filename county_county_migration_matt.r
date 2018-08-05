@@ -1,3 +1,7 @@
+## Author: Mathew Hauer
+## adapted from code originally written by James Byars.
+## Last updated: 08/05/2018
+
 ######################################## Prepare Workspace ########################################
 
 #################### Clean Up Workspace ####################
@@ -64,35 +68,14 @@ getDoParVersion() #  Version of the Currently Registered Parallel Computing Back
 
 ######################################## Reference Data ######################################## 
 
-#################### Displaced Counties ####################
-
-########## Specify Working Directory ##########
-# if(substr(Sys.info()[4], 1, 7) == "DESKTOP")	{setwd("D:/Data/EDUGA/REF")} else # Desktop
-# if(substr(Sys.info()[4], 1, 5) == "CVIOG")		{setwd("U:/Data/County-County Migration")} else # CVIOG
-# 												{setwd("")} # LAPTOP
-
-########## Open Data ##########
-# displaced <- fread("displaced.csv") # Open Data
-# displaced <- displaced[, cnty := as.character(cnty)] # Specify Character Class
-# displaced <- displaced[, cnty := numb_digits_F(cnty, 5), by = "cnty"] # 5 Digit Code
-# displaced <- displaced[, cnty] # Character Vector
-
-#################### State Codes ####################
-
-# ########## Specify Working Directory ##########
-# if(substr(Sys.info()[4], 1, 7) == "DESKTOP")	{setwd("D:/Data/EDUGA/REF")} else # Desktop
-# if(substr(Sys.info()[4], 1, 5) == "CVIOG")		{setwd("U:/Data/County-County Migration")} else # CVIOG
-# 												{setwd("")} # LAPTOP
-
 ########## Open & Prepare Data ##########
 us_states <- read_tsv("MigData/ref_state.tsv") # Open Data
 us_states <- us_states %>%
   filter(!(STATE_ABBREV %in% c("AS","FM","GU","MH","MP","PR","PW","VI","XX","ZZ")))%>% # Remove Non States
   na.omit %>%
   add_row(STATE_ABBREV = "UN", STATE_DESCR = "Unknown", FIPS_CODE = "99")
-# us_states <- us_states[, FIPS_CODE := gsub("US", "" , FIPS_CODE)] # Remove Strings
-# us_states <- us_states[, FIPS_CODE] # FIPS Code
-# us_states <- us_states[nchar(us_states) > 0] # Remove Blanks
+
+
 
 ########## Download & Unzip IRS Migration Data ##########
 # years <- c('1990to1991',
@@ -158,7 +141,6 @@ editions <- c("1990to1991", "1991to1992")
 migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
 
 	##### Specify Directory #####
-	# setwd(paste0("/MigData/",editions[i],"CountyMigrationInflow")) # Specify Directory
   directory <- paste0("./MigData/",editions[i],"/", editions[i],"CountyMigration")
   directory2 <- paste0("MigData/",editions[i],"/", editions[i],"CountyMigration/")
   state_files <- list.files(directory, pattern = "*.txt$", recursive = TRUE) # List Files
@@ -1056,91 +1038,6 @@ migration_20092010 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 ##### Order Observations #####
 migration_20092010 <- migration_20092010[order(org_state, org_county, des_state, des_county)]
 
-# ########## 2011 - 2014 ##########
-# 
-# ##### Specify Years #####
-# editions <- c("2011-2012", "2012-2013", "2013-2014", "2014-2015")
-# 
-# ##### Open Data #####
-# migration_2011_present <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
-# 
-# 	# Specify Directory #
-# 	setwd(paste0(base_dir, "/", editions[i])) # Specify Directory
-# 	state_files <- list.files() # List Files
-# 	
-# 	foreach(j = 1:length(state_files), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "readxl", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
-# 
-# 		# Inflows #
-# 		data_table_I <- read_excel(state_files[j], sheet = "County Inflow", skip = 6, col_names = FALSE) # Open Data
-# 		data_table_I <- data.table(data_table_I) # Specify Data Table Object
-# 		data_table_I <- data_table_I[grepl("Same State|Same Region|Different Region|County Non-Migrants|County Non-migrants|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE]		
-# 		data_table_I <- data_table_I[is.na(X__6) == FALSE] # Remove Nulls	
-# 		data_table_I <- data_table_I[, X__1 := as.integer(X__1)] # Specify Integer Class
-# 		data_table_I <- data_table_I[, X__2 := as.integer(X__2)] # Specify Integer Class
-# 		data_table_I <- data_table_I[, X__3 := as.integer(X__3)] # Specify Integer Class
-# 		data_table_I <- data_table_I[, X__4 := as.integer(X__4)] # Specify Integer Class
-# 		data_table_I <- data_table_I[, X__1 := as.character(X__1)] # Specify Character Class
-# 		data_table_I <- data_table_I[, X__2 := as.character(X__2)] # Specify Character Class
-# 		data_table_I <- data_table_I[, X__3 := as.character(X__3)] # Specify Character Class
-# 		data_table_I <- data_table_I[, X__4 := as.character(X__4)] # Specify Character Class
-# 		data_table_I <- data_table_I[is.na(X__1) == FALSE & is.na(X__3) == FALSE] # Remove Blanks
-# 		data_table_I <- data_table_I[, X__1 := numb_digits_F(X__1, 2), by = "X__1"] # Specify Digits
-# 		data_table_I <- data_table_I[, X__2 := numb_digits_F(X__2, 3), by = "X__2"] # Specify Digits
-# 		data_table_I <- data_table_I[, X__3 := numb_digits_F(X__3, 2), by = "X__3"] # Specify Digits
-# 		data_table_I <- data_table_I[, X__4 := numb_digits_F(X__4, 3), by = "X__4"] # Specify Digits
-# 		setnames(data_table_I, "X__1", "des_state") # Specify Column Names
-# 		setnames(data_table_I, "X__2", "des_county") # Specify Column Names
-# 		setnames(data_table_I, "X__3", "org_state") # Specify Column Names
-# 		setnames(data_table_I, "X__4", "org_county") # Specify Column Names
-# 		setnames(data_table_I, "X__7", "returns") # Specify Column Names
-# 		setnames(data_table_I, "X__8", "exemptions") # Specify Column Names
-# 		data_table_I <- data_table_I[org_state %in% us_states$FIPS_CODE & des_state %in% us_states] # Recognized State
-# 		data_table_I <- data_table_I[, year := substr(editions[i], 1, 4)] # Specify Year
-# 		data_table_I <- data_table_I[, year := as.integer(year)] # Specify Integer Class
-# 		data_table_I <- data_table_I[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-# 		data_table_I <- data_table_I[, returns := as.numeric(returns)] # Specify Numeric Class
-# 		data_table_I <- data_table_I[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
-# 		data_table_I <- data_table_I[, file_name := state_files[j]] # File Name
-# 
-# 		# Outflows #
-# 		data_table_O <- read_excel(state_files[j], sheet = "County Outflow", skip = 6, col_names = FALSE) # Open Data
-# 		data_table_O <- data.table(data_table_O) # Specify Data Table Object
-# 		data_table_O <- data_table_O[grepl("Same State|Same Region|Different Region|County Non-Migrants|County Non-migrants|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE]		
-# 		data_table_O <- data_table_O[is.na(X__6) == FALSE] # Remove Nulls	
-# 		data_table_O <- data_table_O[, X__1 := as.integer(X__1)] # Specify Integer Class
-# 		data_table_O <- data_table_O[, X__2 := as.integer(X__2)] # Specify Integer Class
-# 		data_table_O <- data_table_O[, X__3 := as.integer(X__3)] # Specify Integer Class
-# 		data_table_O <- data_table_O[, X__4 := as.integer(X__4)] # Specify Integer Class
-# 		data_table_O <- data_table_O[, X__1 := as.character(X__1)] # Specify Character Class
-# 		data_table_O <- data_table_O[, X__2 := as.character(X__2)] # Specify Character Class
-# 		data_table_O <- data_table_O[, X__3 := as.character(X__3)] # Specify Character Class
-# 		data_table_O <- data_table_O[, X__4 := as.character(X__4)] # Specify Character Class
-# 		data_table_O <- data_table_O[is.na(X__1) == FALSE & is.na(X__3) == FALSE] # Remove Blanks
-# 		data_table_O <- data_table_O[, X__1 := numb_digits_F(X__1, 2), by = "X__1"] # Specify Digits
-# 		data_table_O <- data_table_O[, X__2 := numb_digits_F(X__2, 3), by = "X__2"] # Specify Digits
-# 		data_table_O <- data_table_O[, X__3 := numb_digits_F(X__3, 2), by = "X__3"] # Specify Digits
-# 		data_table_O <- data_table_O[, X__4 := numb_digits_F(X__4, 3), by = "X__4"] # Specify Digits
-# 		setnames(data_table_O, "X__1", "org_state") # Specify Column Names
-# 		setnames(data_table_O, "X__2", "org_county") # Specify Column Names
-# 		setnames(data_table_O, "X__3", "des_state") # Specify Column Names
-# 		setnames(data_table_O, "X__4", "des_county") # Specify Column Names
-# 		setnames(data_table_O, "X__7", "returns") # Specify Column Names
-# 		setnames(data_table_O, "X__8", "exemptions") # Specify Column Names
-# 		data_table_O <- data_table_O[org_state %in% us_states$FIPS_CODE & des_state %in% us_states] # Recognized State
-# 		data_table_O <- data_table_O[, year := substr(editions[i], 1, 4)] # Specify Year
-# 		data_table_O <- data_table_O[, year := as.integer(year)] # Specify Integer Class
-# 		data_table_O <- data_table_O[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-# 		data_table_O <- data_table_O[, returns := as.numeric(returns)] # Specify Numeric Class
-# 		data_table_O <- data_table_O[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
-# 		data_table_O <- data_table_O[, file_name := state_files[j]] # File Name
-# 	
-# 		data_table <- rbind(data_table_I, data_table_O) # Row Bind Datasets
-# 		
-# 	}
-# }
-# 
-# ##### Order Observations #####
-# migration_2011_present <- migration_2011_present[order(org_state, org_county, des_state, des_county, year)]
 
 #################### Prepare Data ####################
 
@@ -1156,7 +1053,6 @@ rm(migration_20042006) # Remove From Workspace
 rm(migration_1993) # Remove From Workspace
 rm(migration_20072008) # Remove From Workspace
 rm(migration_20092010) # Remove From Workspace
-# rm(migration_2011_present) # Remove From Workspace
 gc() # Garbage Collection
 
 ########## Prepare Data ##########
@@ -1174,7 +1070,6 @@ county_migration_data <- county_migration_data[, exemptions := as.numeric(exempt
 
 ##### Finalize Dataset #####
 county_migration_data <- county_migration_data[, c("origin", "destination", "year", "returns"), with = FALSE] # Keep Columns
-# county_migration_data <- county_migration_data[origin != destination] # Remove Intra-county flows
 county_migration_data <- county_migration_data[order(origin, destination, year)] # Order Observations
 county_migration_data <- unique(county_migration_data) %>% # Remove Duplicates
   mutate(year = case_when(
@@ -1196,18 +1091,14 @@ county_migration_data <- county_migration_data[, .SD[which.max(returns), ], by =
 county_migration_data <- dcast.data.table(county_migration_data, origin + destination ~ year, value.var = "returns", fill = 0) # Case Dataset
 county_migration_data <- county_migration_data[order(origin, destination)] # Order Observations
 
-########## Subset Data ##########
-county_migration_subset <- county_migration_data[origin %in% displaced] # Inundated Counties
+##### Proportions Dataset #####
+county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`) %>% # going from wide to tall
+  group_by(origin, Year) %>% # grouping by origin and year
+  mutate(freq = mig/sum(mig)) %>% # calculating the relative frequency
+  dplyr::select(-mig) %>% # deselecting the count variable
+  spread(Year, freq) # going from tall to wide
 
 ########## Export Dataset ##########
-
-##### Set Working #####
-if(substr(Sys.info()[4], 1, 7) == "DESKTOP")	{setwd("D:/Data/County-County Migration/Final")} else # Desktop
-if(substr(Sys.info()[4], 1, 5) == "CVIOG")		{setwd("U:/Data/County-County Migration/Final")} else # CVIOG
-												{setwd("")} # LAPTOP
-
-##### Export File #####
-write.table(county_migration_data, "county_migration_data.txt", sep = "\t", row.names = FALSE) # Tab Delimited
-write.table(county_migration_subset, "county_migration_displaced.txt", sep = "\t", row.names = FALSE) # Tab Delimited
+write.table(county_migration_probs, "county_migration_probs.txt", sep = "\t", row.names = FALSE) # Tab Delimited
 
 q(save = "no") # Quit R (No Save)
