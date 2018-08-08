@@ -102,7 +102,7 @@ Table: Select differences in the file formats, file organizations, naming, and t
 
 # R Code
 
-The R code used to produce these data is available in the **Supplementary Materials** and can also be found on github. The code makes use of multi-core processing to speed up computation time. Therer are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt` can be either downloaded at github or produced by running the R code.
+The R code used to produce these data is available in the **Supplementary Materials** and can also be found on github. The code makes use of multi-core processing to speed up computation time. Therer are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt`, contains the # of exemptions and can be either downloaded at github or produced by running the R code.
 
 ## Setup 
 The first part of the code simply sets up the R workspace to facilitate the data wrangling. The approriate R packages are downloaded and installed if the user does not already have these packages installed. The paralell computing environment is also set up as `DetectCores() - 1` to ensure one user core is left for other tasks that computer might need. A single reference tab seperatef (tsv) file is required in this section. `ref_state.tsv` contains FIPS code information for US states. I simply add an additional FIPS code for 'unknown' and assign it FIPS state 99.
@@ -114,7 +114,7 @@ The IRS data that can be downloaded is in two primary formats. 1990-2003 and 200
 The third and final section contains several `foreach` parallel processing loops to wrangle the seven legacy formats into a common data format. These files are then row-bound using `rbindlist` and transformed into 'short' data frame. **Table 2** demonstrates the general file layout.
 
 # Usage Notes
-Any origin-destination pair with fewer than 10 migrants over the entire period is excluded from the final datafile. This is done to reduce the size of the final datafile. 
+Any origin-destination pair with fewer than 10 tax filers over the entire period is excluded from the final datafile. This is done to reduce the size of the final datafile. 
 
 US Counties are fairly stable geographic units but some changes in counties do exist. To try and keep as close to the original data fidelity as possible, I did not recode any geographic changes. For instance, Broomfield County CO (FIPS 07014) was created out of parts of Adams, Boulder, Jefferson, and Weld counties and thus contains data after 2002. Users should be aware of any changes in geography that could substantially alter any analyses^[More detailed information about county boundary changes can be found at the following locations https://www.census.gov/geo/reference/county-changes.html
 http://www.nber.org/asg/ASG_release/County_City/FIPS/FIPS_Changes.pdf
