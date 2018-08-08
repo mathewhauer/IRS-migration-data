@@ -30,7 +30,7 @@ Here I provide the code for:  [**IRS County-to-County Migration Data**](https://
 
 # Data
 
-The final IRS migration data can be reproduced by running the `county_county_migration_matt.r` file.
+The final IRS migration data can be downloaded at `DATA-PROCESSED/county_migration_data.txt` or reproduced by running the `county_county_migration_matt.r` file.
 
 
 
