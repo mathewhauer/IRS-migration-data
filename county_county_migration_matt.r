@@ -1,83 +1,65 @@
 ## Author: Mathew Hauer
 ## adapted from code originally written by James Byars.
-## Last updated: 08/05/2018
+## Last updated: 08/08/2018
 
 ######################################## Prepare Workspace ########################################
 
-#################### Clean Up Workspace ####################
+#Clean Up Workspace 
 rm(list = ls()) # Remove Previous Workspace
 gc(reset = TRUE) # Garbage Collection
 
-#################### R Workspace Options ####################
+# R Workspace Options
 options(scipen = 12) # Scientific Notation
 options(digits = 6) # Specify Digits
 options(java.parameters = "-Xmx1000m") # Increase Java Heap Size
 
-######################################## Functions, Libraries, & Parallel Computing ########################################
-
-#################### Functions ####################
-
-########## Install and/or Load Packages ##########
-packages <- function(x){
-	
-	x <- deparse(substitute(x))
-	installed_packages <- as.character(installed.packages()[,1])
-
-	if (length(intersect(x, installed_packages)) == 0){
-		install.packages(pkgs = x, dependencies = TRUE, repos = "https://urldefense.proofpoint.com/v2/url?u=http-3A__cran.r-2Dproject.org&d=DwIGAg&c=HPMtquzZjKY31rtkyGRFnQ&r=4dsMboKrDZCTWM4zk0ZTRw&m=iqWkH-VJmPddnymetSfNU3I5qe7iOfF68uIgLRhqtO0&s=BdE60D4UVYh3A_px1EkMJt2xK_7xkk0CT6SVfE-rS50&e=")
-	}
-	
-	library(x, character.only = TRUE)
-	rm(installed_packages) # Remove From Workspace
-	}
-
-########## Specify Number of Digits (Forward) ##########
+#Functions, Libraries, & Parallel Computing 
+## Functions 
+# Specify Number of Digits (Forward)
 numb_digits_F <- function(x,y){
 	numb_digits_F <- do.call("paste0", list(paste0(rep(0, y - nchar(x)), collapse = ""), x))
 	numb_digits_F <- ifelse(nchar(x) < y, numb_digits_F, x)
 	}
 
-########## Remove Double Space ##########
+# Remove Double Space 
 numb_spaces <- function(x) gsub("[[:space:]]{2,}", " ", x)
 
-#################### Libraries ####################
-packages(data.table) # Data Management/Manipulation
-packages(doParallel) # Parallel Computing
-packages(foreach) # Parallel Computing
-packages(openxlsx) # Microsoft Excel Files
-packages(plyr) # Data Management/Manipulation
-packages(readxl) # Microsoft Excel Files
-packages(reshape2) # Data Management/Manipulation
-packages(stringi) # Character/String Editor
-packages(stringr) # Character/String Editor
-packages(zoo) # Time Series
-packages(tidyverse) # Tidyverse
-rm(packages) # Remove From Workspace
+# Libraries
+library(data.table) # Data Management/Manipulation
+library(doParallel) # Parallel Computing
+library(foreach) # Parallel Computing
+library(openxlsx) # Microsoft Excel Files
+library(plyr) # Data Management/Manipulation
+library(readxl) # Microsoft Excel Files
+library(reshape2) # Data Management/Manipulation
+library(stringi) # Character/String Editor
+library(stringr) # Character/String Editor
+library(zoo) # Time Series
+library(tidyverse) # Tidyverse
 
-#################### Parallel Computing ####################
-
-########## Establish Parallel Computing Cluster ##########
-# detectCores() # Determine Number of Cores
+##Parallel Computing 
+# Establish Parallel Computing Cluster
 clusters <- makeCluster(detectCores() - 1) # Create Cluster with Specified Number of Cores
 registerDoParallel(clusters) # Register Cluster
-
-########## Parallel Computing Details ##########
+# Parallel Computing Details
 getDoParWorkers() # Determine Number of Utilized Clusters
 getDoParName() #  Name of the Currently Registered Parallel Computing Backend
 getDoParVersion() #  Version of the Currently Registered Parallel Computing Backend
 
-######################################## Reference Data ######################################## 
+## Reference Data 
 
-########## Open & Prepare Data ##########
+# Open & Prepare Data 
 us_states <- read_tsv("MigData/ref_state.tsv") # Open Data
 us_states <- us_states %>%
   filter(!(STATE_ABBREV %in% c("AS","FM","GU","MH","MP","PR","PW","VI","XX","ZZ")))%>% # Remove Non States
   na.omit %>%
-  add_row(STATE_ABBREV = "UN", STATE_DESCR = "Unknown", FIPS_CODE = "99")
+  add_row(STATE_ABBREV = "UN", STATE_DESCR = "Unknown", FIPS_CODE = "99") # add the unknown destination FIPS
 
-
-
-########## Download & Unzip IRS Migration Data ##########
+########################## Download & Unzip IRS Migration Data ##########
+###
+### Uncoment the following block of code to download and unzip the IRS migration data.
+###
+## Setting the first set of years to download. 1990-2003 are in the same format. 2004- are in a second format
 # years <- c('1990to1991',
 #            '1991to1992',
 #            '1992to1993',
@@ -96,16 +78,13 @@ us_states <- us_states %>%
 # 
 # for (year in years){
 # 
-#   download.file(paste0("https://www.irs.gov/pub/irs-soi/",year,"countymigration.zip"), 
-#                 dest=paste0("MigData/",year,"countymigration.zip"),
-#                 mode="wb") 
-#   unzip(paste0("MigData/", 
-#                year, 
-#                "countymigration.zip"), 
-#         exdir = paste0("./MigData/", 
-#                        year))
-# } 
-# 
+#   download.file(paste0("https://www.irs.gov/pub/irs-soi/",year,"countymigration.zip"), # download the IRS migration data
+#                 dest=paste0("MigData/",year,"countymigration.zip"), # destination is MigData/
+#                 mode="wb")
+#   unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
+# }
+#
+## Setting the second set of years to download. 
 # years <- c('0405',
 #            '0506',
 #            '0607',
@@ -114,13 +93,14 @@ us_states <- us_states %>%
 #            '0910',
 #            '1011'
 # )
-# for (year in years){  
-#   download.file(paste0("https://www.irs.gov/pub/irs-soi/county",year,".zip"), dest=paste0("MigData/",year,"countymigration.zip")
-#                 , mode="wb") 
+# for (year in years){
+#   download.file(paste0("https://www.irs.gov/pub/irs-soi/county",year,".zip"), # download the IRS migration data
+#                 dest=paste0("MigData/",year,"countymigration.zip") # destination is MigData/
+#                 , mode="wb")
 #   unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
-# } 
+# }
 # 
-# 
+### The following IRS files do not contain data and cannot be read.
 # unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationInflow/co989usi.xls") # file cannot be read and contains no information
 # unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationOutflow/co989uso.xls")
 # unlink("MigData/1999to2000/1999to2000CountyMigration/1999to2000CountyMigrationInflow/co990usi.xls")
@@ -129,24 +109,26 @@ us_states <- us_states %>%
 # unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationOutflow/co001usor.xls")
 # unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationInflow/co102usi.xls")
 # unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationOutflow/co102uso.xls")
+# #############
+# #############
 
-######################################## County Migration Data ######################################## 
 
-#################### 1990 - 1991 ####################
+########################################County Migration Data  ########################################
 
-########## Specify Years ##########
+#### 1990 - 1991 
+# Specify Years 
 editions <- c("1990to1991", "1991to1992")
 
-########## Open Data ##########
+# Open Data
 migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "reshape2", "stringi", "stringr", "zoo")) %dopar% {
 
-	##### Specify Directory #####
+	# Specify Directory
   directory <- paste0("./MigData/",editions[i],"/", editions[i],"CountyMigration")
   directory2 <- paste0("MigData/",editions[i],"/", editions[i],"CountyMigration/")
   state_files <- list.files(directory, pattern = "*.txt$", recursive = TRUE) # List Files
   state_files <- paste0(directory2, state_files)
 
-	##### Loop Data #####	
+	# Loop Data #
 	foreach(j = 1:length(state_files), .combine = rbind, .errorhandling = "stop", .packages = c("data.table", "doParallel", "foreach", "reshape2", "stringi", "stringr", "zoo", "tidyverse")) %dopar% {
 
 		# Specify Flows #
@@ -192,8 +174,7 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table2 <- data_table2[, test := numb_spaces(test)] # Remove Double Spaces
 			data_table2 <- data_table2 %>%
 			  separate(test, into = c('a','b','c','d','e','f'), sep = " ") %>% # separating out the test variable into its constituents
-			  select("des_state" = a, "des_county" = b, "returns" = e, "exemptions" = "f"
-			         ) %>%
+			  select("des_state" = a, "des_county" = b, "returns" = e, "exemptions" = "f") %>% # renaming the separated test variable
 			  mutate(org_state = des_state, # Origin state
 			         org_county = des_county, # Origin county
 			         year = as.integer(substr(editions[i], 1, 4)), # Year
@@ -214,16 +195,16 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table3 <- data_table3[, year := substr(editions[i], 1, 4)] # Specify Year
 			data_table3 <- data_table3[, year := as.integer(year)] # Specify Integer Class
 			data_table3 <- data_table3[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-			# data_table3 <- data_table3[org_state %in% us_states$FIPS_CODE] # Recognized State
 			data_table3 <- data_table3[, file_name := state_files[j]] # File Name
-			tots <- data_table %>%
-			  group_by(des_state, des_county) %>%
-			  summarise(tot_returns = sum(returns),
-			            tot_exemps = sum(exemptions))
-			data_table3 <- left_join(data_table3, tots) %>%
-			  mutate(returns = returns - tot_returns,
-			         exemptions = exemptions - tot_exemps) %>%
-			  select(-tot_returns, -tot_exemps)
+			
+			tots <- data_table %>% # Summing to create the totals
+			  group_by(des_state, des_county) %>% # grouping by State and County
+			  summarise(tot_returns = sum(returns), # summing the total returns
+			            tot_exemps = sum(exemptions)) # summing the total exemptions
+			data_table3 <- left_join(data_table3, tots) %>% # joining the totals with the flows
+			  mutate(returns = returns - tot_returns, # creating the number of returns as the total returns minus the sum
+			         exemptions = exemptions - tot_exemps) %>%  # creating the number of exemptions as the total returns minus the sum
+			  select(-tot_returns, -tot_exemps) # deselecting the summed returns and exemptions
 			
 			data_table = rbind(data_table, data_table2, data_table3) # putting the three files together.
 			  
@@ -266,15 +247,12 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table2 <- data_table2[, test := numb_spaces(test)] # Remove Double Spaces
 			data_table2 <- data_table2 %>%
 			  separate(test, into = c('a','b','c','d','e','f'), sep = " ") %>% # separating out the test variable into its constituents
-			  select("des_state" = a, "des_county" = b, "returns" = e, "exemptions" = "f"
-			  ) %>%
+			  select("des_state" = a, "des_county" = b, "returns" = e, "exemptions" = "f") %>%
 			  mutate(org_state = des_state, # Origin state
 			         org_county = des_county, # Origin county
 			         year = as.integer(substr(editions[i], 1, 4)), # Year
 			         file_name = state_files[j]) # File name
 		
-			
-			
 			data_table3 <- data_table3[, V1 := toupper(V1)] # Upper Case
 			data_table3 <- data_table3[, test2 := gsub(".*[[:space:]][A-Z]{2}[[:space:]]{1,}[0-9]{1,}", "", V1)] # Extract Pattern
 			data_table3 <- data_table3[, V1 := str_trim(V1)] # Remove Leading/Lagging Space
@@ -290,7 +268,6 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table3 <- data_table3[, year := substr(editions[i], 1, 4)] # Specify Year
 			data_table3 <- data_table3[, year := as.integer(year)] # Specify Integer Class
 			data_table3 <- data_table3[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions"), with = FALSE] # Keep Columns
-			# data_table3 <- data_table3[org_state %in% us_states$FIPS_CODE] # Recognized State
 			data_table3 <- data_table3[, file_name := state_files[j]] # File Name
 		  tots <- data_table %>%
 		    group_by(org_state, org_county) %>%
@@ -306,7 +283,7 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 	}
 }
 
-##### Order Observations #####
+# Order Observations
 migration_19901991 <- migration_19901991[order(org_state, org_county, des_state, des_county)]
 
 ########## 1993 ##########
@@ -1069,10 +1046,10 @@ county_migration_data <- county_migration_data[, returns := as.numeric(returns)]
 county_migration_data <- county_migration_data[, exemptions := as.numeric(exemptions)] # Numeric Class
 
 ##### Finalize Dataset #####
-county_migration_data <- county_migration_data[, c("origin", "destination", "year", "returns"), with = FALSE] # Keep Columns
+county_migration_data <- county_migration_data[, c("origin", "destination", "year", "exemptions"), with = FALSE] # Keep Columns
 county_migration_data <- county_migration_data[order(origin, destination, year)] # Order Observations
 county_migration_data <- unique(county_migration_data) %>% # Remove Duplicates
-  mutate(year = case_when(
+  mutate(year = case_when( # fixing the dates
         year == 405 ~ 2004,
         year == 506 ~ 2005,
         year == 607 ~ 2006,
@@ -1082,14 +1059,14 @@ county_migration_data <- unique(county_migration_data) %>% # Remove Duplicates
         year == 1011 ~ 2010,
         TRUE ~ as.numeric(year))
   )
-county_migration_data <- as.data.table(county_migration_data)
+county_migration_data <- as.data.table(county_migration_data) # converting to data table
 
 ##### Max Reported Returns #####
-county_migration_data <- county_migration_data[, .SD[which.max(returns), ], by = c("origin", "destination", "year")] # Remove Less Reported Values
+county_migration_data <- county_migration_data[, .SD[which.max(exemptions), ], by = c("origin", "destination", "year")] # Remove Less Reported Values
 
 ##### Case Dataset #####
-county_migration_data <- dcast.data.table(county_migration_data, origin + destination ~ year, value.var = "returns", fill = 0) # Case Dataset
-county_migration_data <- county_migration_data[order(origin, destination)] # Order Observations
+county_migration_data <- dcast.data.table(county_migration_data2, origin + destination ~ year, value.var = "exemptions", fill = 0) # Case Dataset
+county_migration_data <- county_migration_data2[order(origin, destination)] # Order Observations
 
 ##### Proportions Dataset #####
 county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`) %>% # going from wide to tall
@@ -1099,6 +1076,6 @@ county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`
   spread(Year, freq) # going from tall to wide
 
 ########## Export Dataset ##########
-write.table(county_migration_probs, "county_migration_probs.txt", sep = "\t", row.names = FALSE) # Tab Delimited
+# write.table(county_migration_data, "county_migration_data.txt", sep = "\t", row.names = FALSE) # Tab Delimited
 
 q(save = "no") # Quit R (No Save)
