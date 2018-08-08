@@ -1065,8 +1065,8 @@ county_migration_data <- as.data.table(county_migration_data) # converting to da
 county_migration_data <- county_migration_data[, .SD[which.max(exemptions), ], by = c("origin", "destination", "year")] # Remove Less Reported Values
 
 ##### Case Dataset #####
-county_migration_data <- dcast.data.table(county_migration_data2, origin + destination ~ year, value.var = "exemptions", fill = 0) # Case Dataset
-county_migration_data <- county_migration_data2[order(origin, destination)] # Order Observations
+county_migration_data <- dcast.data.table(county_migration_data, origin + destination ~ year, value.var = "exemptions", fill = 0) # Case Dataset
+county_migration_data <- county_migration_data[order(origin, destination)] # Order Observations
 
 ##### Proportions Dataset #####
 county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`) %>% # going from wide to tall
@@ -1076,6 +1076,6 @@ county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`
   spread(Year, freq) # going from tall to wide
 
 ########## Export Dataset ##########
-# write.table(county_migration_data, "DATA-PROCESSED/county_migration_data.txt", sep = "\t", row.names = FALSE) # Tab Delimited
+write.table(county_migration_data, "DATA-PROCESSED/county_migration_data.txt", sep = "\t", row.names = FALSE) # Tab Delimited
 
 q(save = "no") # Quit R (No Save)

@@ -26,7 +26,7 @@ Here I provide the code for:  [**IRS County-to-County Migration Data**](https://
 
 # Use
 - Feel free to create a new branch for further incorporation and analysis. 
-- More information in is located in each folder `DATA`.
+- Please properly cite all use of the underlying code or data. Thanks!
 
 # Data
 
