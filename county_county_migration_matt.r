@@ -60,55 +60,55 @@ us_states <- us_states %>%
 ### Uncoment the following block of code to download and unzip the IRS migration data.
 ###
 # Setting the first set of years to download. 1990-2003 are in the same format. 2004- are in a second format
-years <- c('1990to1991',
-           '1991to1992',
-           '1992to1993',
-           '1993to1994',
-           '1994to1995',
-           '1995to1996',
-           '1996to1997',
-           '1997to1998',
-           '1998to1999',
-           '1999to2000',
-           '2000to2001',
-           '2001to2002',
-           '2002to2003',
-           '2003to2004'
-)
-
-for (year in years){
-
-  download.file(paste0("https://www.irs.gov/pub/irs-soi/",year,"countymigration.zip"), # download the IRS migration data
-                dest=paste0("MigData/",year,"countymigration.zip"), # destination is MigData/
-                mode="wb")
-  unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
-}
-
-# Setting the second set of years to download.
-years <- c('0405',
-           '0506',
-           '0607',
-           '0708',
-           '0809',
-           '0910',
-           '1011'
-)
-for (year in years){
-  download.file(paste0("https://www.irs.gov/pub/irs-soi/county",year,".zip"), # download the IRS migration data
-                dest=paste0("MigData/",year,"countymigration.zip") # destination is MigData/
-                , mode="wb")
-  unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
-}
-
-## The following IRS files do not contain data and cannot be read.
-unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationInflow/co989usi.xls") # file cannot be read and contains no information
-unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationOutflow/co989uso.xls")
-unlink("MigData/1999to2000/1999to2000CountyMigration/1999to2000CountyMigrationInflow/co990usi.xls")
-unlink("MigData/1999to2000/1999to2000CountyMigration/1999to2000CountyMigrationOutflow/co990uso.xls")
-unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationInflow/co001usir.xls")
-unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationOutflow/co001usor.xls")
-unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationInflow/co102usi.xls")
-unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationOutflow/co102uso.xls")
+# years <- c('1990to1991',
+#            '1991to1992',
+#            '1992to1993',
+#            '1993to1994',
+#            '1994to1995',
+#            '1995to1996',
+#            '1996to1997',
+#            '1997to1998',
+#            '1998to1999',
+#            '1999to2000',
+#            '2000to2001',
+#            '2001to2002',
+#            '2002to2003',
+#            '2003to2004'
+# )
+# 
+# for (year in years){
+# 
+#   download.file(paste0("https://www.irs.gov/pub/irs-soi/",year,"countymigration.zip"), # download the IRS migration data
+#                 dest=paste0("MigData/",year,"countymigration.zip"), # destination is MigData/
+#                 mode="wb")
+#   unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
+# }
+# 
+# # Setting the second set of years to download.
+# years <- c('0405',
+#            '0506',
+#            '0607',
+#            '0708',
+#            '0809',
+#            '0910',
+#            '1011'
+# )
+# for (year in years){
+#   download.file(paste0("https://www.irs.gov/pub/irs-soi/county",year,".zip"), # download the IRS migration data
+#                 dest=paste0("MigData/",year,"countymigration.zip") # destination is MigData/
+#                 , mode="wb")
+#   unzip(paste0("MigData/", year, "countymigration.zip"), exdir = paste0("./MigData/", year))
+# }
+# 
+# ## The following IRS files do not contain data and cannot be read.
+# unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationInflow/co989usi.xls") # file cannot be read and contains no information
+# unlink("MigData/1998to1999/1998to1999CountyMigration/1998to1999CountyMigrationOutflow/co989uso.xls")
+# unlink("MigData/1999to2000/1999to2000CountyMigration/1999to2000CountyMigrationInflow/co990usi.xls")
+# unlink("MigData/1999to2000/1999to2000CountyMigration/1999to2000CountyMigrationOutflow/co990uso.xls")
+# unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationInflow/co001usir.xls")
+# unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationOutflow/co001usor.xls")
+# unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationInflow/co102usi.xls")
+# unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationOutflow/co102uso.xls")
 # #############
 # #############
 
@@ -285,6 +285,8 @@ migration_19901991 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 
 # Order Observations
 migration_19901991 <- migration_19901991[order(org_state, org_county, des_state, des_county)]
+migration_19901991 <- migration_19901991[org_state %in% us_states$FIPS_CODE] # Recognized State
+migration_19901991 <- migration_19901991[des_state %in% us_states$FIPS_CODE] # Recognized State
 
 ########## 1993 ##########
 
@@ -361,6 +363,7 @@ migration_1993 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandli
 			  filter(org_state %in% us_states$FIPS_CODE) # Remove Elements	
 			data_table <- as.data.table(rbind(data_table, data_table2, data_table3))
 			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+			data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
 			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
 			data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
@@ -415,6 +418,7 @@ migration_1993 <- foreach(i = 1:length(editions), .combine = rbind, .errorhandli
 	  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
 	  data_table <- as.data.table(rbind(data_table, data_table2, data_table3))
 	  data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+	  data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
 	  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
 	  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
@@ -486,6 +490,7 @@ migration_19921994 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 			data_table <- as.data.table(rbind(data_table, data_table2, data_table3))
 			data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
 			data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
+			data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
 			data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
 		
@@ -530,6 +535,7 @@ migration_19921994 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 		  data_table <- data_table[grepl("Same State|Same Region|Different Region|Non-Migrant|Non-migrant|Other Flows|Region[[:space:]][0-9]{1}|All Migration Flows|Foreign|Overseas", X__6) == FALSE] # Remove Elements	
 		  data_table <- as.data.table(rbind(data_table, data_table2, data_table3))
 		  data_table <- data_table[, c("org_state", "org_county", "des_state", "des_county", "year", "returns", "exemptions", "file_name"), with = FALSE] # Keep Columns
+		  data_table <- data_table[org_state %in% us_states$FIPS_CODE] # Recognized State
 		  data_table <- data_table[des_state %in% us_states$FIPS_CODE] # Recognized State
 		  data_table <- data_table[order(org_state, org_county, des_state, des_county)] # Order Observations
 			
@@ -581,10 +587,11 @@ migration_19952003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
       data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
       data_table <- data_table[, file_name := state_files[j]] # File Name
       
-      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+      # data_table2 <- data_table[grepl("Non-Migr|Non-migr", X__6) == TRUE]  %>% # Keep non-migrants 	
+        data_table2 <-   filter(data_table, paste0(des_state, des_county) == paste0(org_state, org_county))  %>%
         mutate(org_state = des_state, # Origin state
                org_county = des_county) # Origin county          
-      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+      data_table3 <-  filter(data_table, !paste0(des_state, des_county) == paste0(org_state, org_county)) %>%
         filter(org_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
         group_by(des_state, des_county) %>%
         summarise(tot_returns = sum(as.numeric(returns)),
@@ -623,10 +630,10 @@ migration_19952003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
       data_table <- data_table[, exemptions := as.numeric(exemptions)] # Specify Numeric Class
       data_table <- data_table[, file_name := state_files[j]] # File Name
       
-      data_table2 <- data_table[grepl("Non-Migrant|Non-migrant", X__6) == TRUE]  %>% # Keep non-migrants 	
+      data_table2 <- filter(data_table, paste0(des_state, des_county) == paste0(org_state, org_county))  %>% # Keep non-migrants 	
         mutate(des_state = org_state, # Origin state
                des_county = org_county) # Origin county          
-      data_table3 <- data_table[!grepl("Non-Migrant|Non-migrant", X__6) == TRUE] %>%
+      data_table3 <- filter(data_table, !paste0(des_state, des_county) == paste0(org_state, org_county)) %>%
         filter(des_state %in% us_states$FIPS_CODE) %>%  # Keep non-migrants 
         group_by(org_state, org_county) %>%
         summarise(tot_returns = sum(as.numeric(returns)),
