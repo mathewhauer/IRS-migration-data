@@ -659,7 +659,7 @@ migration_19952003 <- foreach(i = 1:length(editions), .combine = rbind, .errorha
 }
 
 ##### Order Observations #####
-migration_19922003 <- migration_19922003[order(org_state, org_county, des_state, des_county, year)]
+migration_19952003 <- migration_19952003[order(org_state, org_county, des_state, des_county, year)]
 
 
 ##### Specify Years #####
