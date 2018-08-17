@@ -1,4 +1,4 @@
-
+library(plyr)
 migdat<-read_tsv("DATA-PROCESSED/county_migration_data.txt")
 
 inmig <- filter(migdat, !origin == destination) %>%
@@ -29,12 +29,14 @@ for(i in 3:(ncol(migdat)-1)){
   dat <- full_join(dat, a)
 }
 
-fips <- "16015"
+fips <- "36061"
 a<- ggplot(data=migrants) +
   geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
   theme_bw() +
   theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Boise ID")) +
+  labs(title = paste0("FIPS: ", fips, " New York NY"),
+       x = "Year",
+       y = "Exemptions/Migrants") +
   NULL
 
 fips <- "13125"
