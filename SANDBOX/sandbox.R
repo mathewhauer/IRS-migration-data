@@ -29,87 +29,29 @@ for(i in 3:(ncol(migdat)-1)){
   dat <- full_join(dat, a)
 }
 
-fips <- "36061"
-a<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " New York NY"),
-       x = "Year",
-       y = "Exemptions/Migrants") +
-  NULL
+figure <- function(this.fips, this.name){
+  a<- ggplot(data=migrants) +
+    geom_line(data=migrants[which(migrants$location %in% this.fips),], aes(x = Years, y = Migrants, group=direction, color = direction, linetype=direction)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
+    labs(title = paste0("FIPS: ", this.fips, this.name),
+         x = "Year",
+         y = "Exemptions/Migrants") +
+    NULL
+  return(a)
+}
 
-fips <- "13125"
-b<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Glascock GA")) +
-  NULL
+a <- figure("16015", " Boise ID")
+b <- figure("13125", " Glascock GA")
+c <- figure("22087", " St. Barnard LA")
+d <- figure("20061", " Geary KS")
+e <- figure("02016", " Aleut W AK")
+f <- figure("16033", " Clark ID")
+g <- figure("22071", " Orleans LA")
+h <- figure("51069", " Frederick VA")
+i <- figure("22115", " Vernon LA")
+j <- figure("51660", " Harrisonburg VA")
 
-fips <- "22087"
-c<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " St. Barnard LA")) +
-  NULL
-
-fips <- "20061"
-d<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Geary KS")) +
-  NULL
-
-fips <- "02016"
-e<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips), " Aleutians W AK") +
-  NULL
-
-fips <- "16033"
-f<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Clark ID")) +
-  NULL
-
-fips <- "22071"
-g<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Orleans LA")) +
-  NULL
-
-fips <- "51069"
-h<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Frederick VA")) +
-  NULL
-
-fips <- "22115"
-i<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Vernon LA")) +
-  NULL
-
-fips <- "51660"
-j<- ggplot(data=migrants) +
-  geom_line(data=migrants[which(migrants$location %in% fips),], aes(x = Years, y = Migrants, group=direction, color = direction)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
-  labs(title = paste0("FIPS: ", fips, " Harrisonburg VA")) +
-  NULL
 
 
 
