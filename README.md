@@ -10,17 +10,18 @@ Here I provide the code for:  [**IRS County-to-County Migration Data**](https://
 
 # Abstract
 
-**BACKGROUND**: The Internal Revenue Service's (IRS) county-to-county migration data are an incredible resource for understanding migration in the United States. Produced annually since 1990 in conjunction with the US Census Bureau, the IRS migration data represent 95 to 98 percent of the tax filing universe and their dependents, making the IRS migration data one of the largest sources of migration data. However, any analysis using the IRS migration data must wrangle at least seven legacy formats of these public data across more than 2000 data files -- a serious burden for migration research. 
+**BACKGROUND**: The Internal Revenue Service's (IRS) county-to-county migration data are an incredible resource for understanding migration in the United States. Produced annually since 1990 in conjunction with the US Census Bureau, the IRS migration data represent 95 to 98 percent of the tax filing universe and their dependents, making the IRS migration data one of the largest sources of migration data. However, any analysis using the IRS migration data must process at least seven legacy formats of these public data across more than 2000 data files -- a serious burden for migration scholars. 
 
-**OBJECTIVE**: To produce a single, flat data file containing complete county-to-county IRS migration flow data. 
+**OBJECTIVE**: To produce a single, flat data file containing complete county-to-county IRS migration flow data and to make the computer code used to process the migration data available. 
 
-**METHODS**: This paper uses R to wrangle more than 2,000 IRS migration files into a single, flat data file for use in migration research. 
+**METHODS**: This paper uses R to process more than 2,000 IRS migration files into a single, flat data file for use in migration research. 
 
-**CONTRIBUTION**: To encourage and facilitate the use of this data, I provide the full R script to download and flatten the IRS migration data as counts and a finalized data set covering the period 1990-2010.
+**CONTRIBUTION**: To encourage and facilitate the use of this data, we provide a single, standardized, flat data file containing county-to-county migration flows for the period 1990-2010 and provide the full R script to download, process, and flatten the IRS migration data.
 
 
 # Organization
 - `LATEX`  — Contains latex files to reproduce the main manuscript file.
+- `R` - Contains the R scripts needed to reproduce the flat IRS migration datafile.
 - `MigData`  — Initial data resources, unprocessed.
 - `DATA-PROCESSED` — Final, post-processed data.
 
@@ -30,7 +31,7 @@ Here I provide the code for:  [**IRS County-to-County Migration Data**](https://
 
 # Data
 
-The final IRS migration data can be downloaded at `DATA-PROCESSED/county_migration_data.txt` or reproduced by running the `county_county_migration_matt.r` file.
+The final IRS migration data can be downloaded at `DATA-PROCESSED/county_migration_data.txt` or reproduced by running the `R/999-master_script.R` file.
 
 
 
