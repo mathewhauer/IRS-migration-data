@@ -7,13 +7,13 @@ output:
     fig_caption: true
     latex_engine: pdflatex
     template: LATEX/svm-latex-ms.tex
-title: "IRS County-to-County Migration Data"
-thanks: "The data and code that supports the creation of this data are available in the Supplementary Materials and online at  https://github.com/mathewhauer/IRS-migration-data."
+title: "IRS County-to-County Migration Data, 1990-2010"
+thanks: "The data and code that supports the creation of this data are available in the Supplementary Materials and online at  https://github.com/blinded/for-peer-review."
 author:
-  - name: Mathew E. Hauer ^1,2^*
-    affiliation: Florida State University
-  - name: James M. Byars ^3^
-    affiliation: University of Georgia
+  # - name: Mathew E. Hauer ^1,2^*
+  #   affiliation: Florida State University
+  # - name: James M. Byars ^3^
+  #   affiliation: University of Georgia
 # abstract: ""
 keywords: "Migration, IRS, Data, R"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -36,13 +36,13 @@ header-includes:
 
 
 ---
-*Corresponding author. mehauer\@fsu.edu. p: 850-644-7103
+<!-- *Corresponding author. mehauer\@fsu.edu. p: 850-644-7103 -->
 
-^1^ Department of Sociology, Florida State University. 605 Bellamy Building, 113 Collegiate Loop, Tallahassee, FL USA 30622.
+<!-- ^1^ Department of Sociology, Florida State University. 605 Bellamy Building, 113 Collegiate Loop, Tallahassee, FL USA 30622. -->
 
-^2^ Center for Demography and Population Health, Florida State University
+<!-- ^2^ Center for Demography and Population Health, Florida State University -->
 
-^3^ Carl Vinson Institute of Government, University of Georgia.
+<!-- ^3^ Carl Vinson Institute of Government, University of Georgia. -->
 
 <!-- *Acknowledgements*: The authors would like to thank for their helpful comments. -->
 
@@ -50,7 +50,7 @@ header-includes:
 
 **BACKGROUND**: The Internal Revenue Service's (IRS) county-to-county migration data are an incredible resource for understanding migration in the United States. Produced annually since 1990 in conjunction with the US Census Bureau, the IRS migration data represent 95 to 98 percent of the tax filing universe and their dependents, making the IRS migration data one of the largest sources of migration data. However, any analysis using the IRS migration data must process at least seven legacy formats of these public data across more than 2000 data files -- a serious burden for migration scholars. 
 
-**OBJECTIVE**: To produce a single, flat data file containing complete county-to-county IRS migration flow data and to make the computer code used to process the migration data available. 
+**OBJECTIVE**: To produce a single, flat data file containing complete county-to-county IRS migration flow data and to make the computer code used to process the migration data freely available. 
 
 **METHODS**: This paper uses R to process more than 2,000 IRS migration files into a single, flat data file for use in migration research. 
 
@@ -82,7 +82,7 @@ Migration flow data (ie, the number of migrants from location *i* to location *j
 
 In the United States, subnational migration flow is available from three primary sources, depending on time period: the Decennial Census, the American Community Survey, and the Internal Revenue Service's (IRS) county-to-county migration data. The IRS migration data are a pioneering use of administrative records to estimate demographic processes and are available on an annual basis since 1990. Because of the annual availability, relatively long time series, large universe due to the administrative records, and long history of use, the IRS data are an attractive data source for conducting migration research in the United States (e.g. [@curtis2015recovery;@molloy2011internal;@shumway2001spatial;@frey2009great]). Unfortunately, these data exist in seven legacy formats, split between 2,000+ data files making analysis with this data rather burdensome and has likely hindered the widespread adoption of this valuable resource for US migration scholarship.
 
-To encourage and facilitate the use of this tremendous migration resource, we make two contributions: (1) we publish a single, flat, standardized data file containing all county-to-county migration flows for the period 1990-2010, and (2) we publish the open-source R code used to process the IRS data into the single, flat, standardized data file for reproducibility, transparency, and educational purposes. By publishing both the migration data itself and the R code to collate, process, and flatten the IRS migration data, our hope is to save time and effort for other migration scholars and facilitate the use of this data. Scholars who wish to use these data should still familiarize themselves with the strengths and weaknesses, idiosyncrasies, and design of these data (see [@gross2005internal; @engels1981measuring;@franklin2006pandora;@pierce2015soi] for discussions on the IRS data) and with the procedures outlined in this document and in the corresponding R code^[The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository located at https://github.com/mathewhauer/IRS-migration-data].
+To encourage and facilitate the use of this tremendous migration resource, we make two contributions: (1) we publish a single, flat, standardized data file containing all county-to-county migration flows for the period 1990-2010, and (2) we publish the open-source R code used to process the IRS data into the single, flat, standardized data file for reproducibility, transparency, and educational purposes. By publishing both the migration data itself and the R code to collate, process, and flatten the IRS migration data, our hope is to save time and effort for other migration scholars and facilitate the use of this data. Scholars who wish to use these data should still familiarize themselves with the strengths and weaknesses, idiosyncrasies, and design of these data (see [@gross2005internal; @engels1981measuring;@franklin2006pandora;@pierce2015soi] for discussions on the IRS data) and with the procedures outlined in this document and in the corresponding R code^[The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository located at https://github.com/blinded/for-peer-review].
 
 We have attempted to introduce as little post-processing as possible to process the data into a common format. US Counties are fairly stable geographic units but some changes in county boundaries, names, and FIPS codes due occasionally occur^[The Federal Information Processing Standard Publication (FIPS) is a 5-digit code used to uniquely identify US counties and county equivalents.]. To try and keep as close to the original data fidelity as possible, we did not recode any geographic changes and present the IRS migration data as-is. For instance, Broomfield County, Colorado (FIPS 07014) was created out of parts of Adams, Boulder, Jefferson, and Weld counties in 2001 and thus has data only after 2002. Uses should be aware of any changes in county boundaries, county names, or FIPS changes that could substantially alter any analysis of this data^[More detailed information about county boundary, name, or FIPS changes can be found at the following locations https://www.census.gov/geo/reference/county-changes.html
 http://www.nber.org/asg/ASG_release/County_City/FIPS/FIPS_Changes.pdf
@@ -155,7 +155,7 @@ The aggregation to FIPS 99999 is the only mathematical post-processing of the IR
 
 ## R Code
 
-The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository^[https://github.com/mathewhauer/IRS-migration-data]. The code makes use of multi-core processing to speed up computation time. There are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt`, contains the # of exemptions and can be either downloaded at github or produced by running the R code.
+The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository^[https://github.com/blinded/for-peer-review]. The code makes use of multi-core processing to speed up computation time. There are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt`, contains the # of exemptions and can be either downloaded at github or produced by running the R code.
 
 ## Setup 
 The script `000-libraries.R` simply sets up the R workspace to facilitate the data processing The appropriate R packages are downloaded and installed if the user does not already have these packages installed. The parallel computing environment is also set up as `DetectCores() - 1` to ensure one user core is left for other tasks that the computer might need. A single reference tab separated (tsv) file is required in this section and is loaded into the local environment. `ref_state.tsv` contains FIPS code information for US states. we simply add an additional FIPS code for 'unknown' and assign it FIPS state 99.

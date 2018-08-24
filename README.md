@@ -4,7 +4,7 @@ Here I provide the code for:  [**IRS County-to-County Migration Data**](https://
 ### Citation
 
 
-> Hauer, M.E. *Open Science Framework.* (DOI Forthcoming) (YEAR ACCESSED).
+> Hauer, M.E. & Byars, J. *Open Science Framework.* (DOI Forthcoming) (YEAR ACCESSED).
 
 
 
