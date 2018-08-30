@@ -970,13 +970,6 @@ county_migration_data <- county_migration_data[, .SD[which.max(exemptions), ], b
 county_migration_data <- dcast.data.table(county_migration_data, origin + destination ~ year, value.var = "exemptions", fill = 0) # Case Dataset
 county_migration_data <- county_migration_data[order(origin, destination)] # Order Observations
 
-##### Proportions Dataset #####
-county_migration_probs <- gather(county_migration_data, Year, mig, `1990`:`2010`) %>% # going from wide to tall
-  group_by(origin, Year) %>% # grouping by origin and year
-  mutate(freq = mig/sum(mig)) %>% # calculating the relative frequency
-  dplyr::select(-mig) %>% # deselecting the count variable
-  spread(Year, freq) # going from tall to wide
-
 ########## Export Dataset ##########
 write.table(county_migration_data, "DATA-PROCESSED/county_migration_data.txt", sep = "\t", row.names = FALSE) # Tab Delimited
 
