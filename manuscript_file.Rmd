@@ -1,41 +1,29 @@
 ---
-output: 
-  pdf_document:
-    number_sections: true
-    citation_package: natbib
-    keep_tex: true
-    fig_caption: true
-    latex_engine: pdflatex
-    template: LATEX/svm-latex-ms.tex
 title: "IRS County-to-County Migration Data, 1990-2010"
-thanks: "The data and code that supports the creation of this data are available in the Supplementary Materials and online at  https://github.com/blinded/for-peer-review."
-author:
-  # - name: Mathew E. Hauer ^1,2^*
-  #   affiliation: Florida State University
-  # - name: James M. Byars ^3^
-  #   affiliation: University of Georgia
-# abstract: ""
-keywords: "Migration, IRS, Data, R"
+author: "null"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-geometry: margin=1in
-#fontfamily: mathpazo
+output:
+  pdf_document:
+    citation_package: natbib
+    fig_caption: yes
+    keep_tex: yes
+    latex_engine: pdflatex
+    number_sections: yes
+    template: LATEX/svm-latex-ms.tex
 fontsize: 12pt
-spacing: double
-bibliography:  LATEX/mybibfile.bib
-biblio-style: apsr
-# use apsr or nature
+geometry: margin=1in
 header-includes:
 - \usepackage[all]{nowidow}
 - \usepackage{rotating}
-# - \usepackage{fancyhdr}
 - \usepackage{multirow}
 - \usepackage{tabularx}
-# - \pagestyle{fancy}
 - \pagenumbering{gobble}
-# - \fancyhead{}
-# - \fancyhead[CE,CO]{IRS Migration Data}
-
-
+keywords: Migration, IRS, Data, R
+bibliography: LATEX/mybibfile.bib
+spacing: double
+thanks: The data and code that supports the creation of this data are available in
+  the Supplementary Materials and online at  https://osf.io/wgcf3/?view_only=c5ba62fb4821421ea0621bfd0d723e61.
+biblio-style: apsr
 ---
 <!-- *Corresponding author. mehauer\@fsu.edu. p: 850-644-7103 -->
 
@@ -55,7 +43,7 @@ header-includes:
 
 **METHODS**: This paper uses R to process more than 2,000 IRS migration files into a single, flat data file for use in migration research. 
 
-**CONTRIBUTION**: To encourage and facilitate the use of this data, we provide a single, standardized, flat data file containing county-to-county migration flows for the period 1990-2010 and provide the full R script to download, process, and flatten the IRS migration data.
+**CONTRIBUTION**: To encourage and facilitate the use of this data, we provide a single, standardized, flat data file containing county-to-county 1-year migration flows for the period 1990-2010 and provide the full R script to download, process, and flatten the IRS migration data.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -67,46 +55,144 @@ library(tmap)
 library(tmaptools)
 library(RColorBrewer)
 library(tidycensus)
-library(tigris)
-library(rgeos)
-library(sp)
-library(geosphere)
-library(directlabels)
-library(spdplyr)
 library(scales)
 library(magick)
 
 ```
 
 # Introduction
-Migration flow data (ie, the number of migrants from location *i* to location *j*) are typically difficult to obtain information  despite their importance [@willekens2016international; @rogers2010indirect]. Migration scholars typically focus on cross-border, national migration flow data and recent country-to-country migration data are vital for understanding migration processes [@abel2014quantifying;@abel2017estimates;@abel2013estimating]. However, there is growing demonstrated importance surrounding subnational migration flows [@sorichetta2016mapping; @curtis2015recovery].
+Migration flow data (ie, the number of migrants from location *i* to location *j*) are typically difficult to obtain information  despite their importance [@willekens2016international; @rogers2010indirect]. Migration scholars typically focus on cross-border, international migration flow data and recent country-to-country migration data are vital for understanding migration processes [@abel2014quantifying;@abel2017estimates;@abel2013estimating]. However, there is growing demonstrated importance surrounding subnational migration flows [@sorichetta2016mapping; @curtis2015recovery].
 
-In the United States, subnational migration flow data is available from three primary sources depending on the time period: the Decennial Census, the American Community Survey, and the Internal Revenue Service's (IRS) county-to-county migration data. The IRS migration data are a pioneering use of administrative records to estimate demographic processes and are available on an annual basis since 1990. Because of the annual availability, relatively long time series, large universe due to the administrative records, and long history of use, the IRS data are an attractive data source for conducting migration research in the United States (e.g. [@curtis2015recovery;@molloy2011internal;@shumway2001spatial;@frey2009great]). Unfortunately, these data exist in seven legacy formats, split between 2,000+ data files making analysis with this data rather burdensome and has likely hindered the widespread adoption of this valuable resource for US migration scholarship.
+In the United States, subnational migration flow data is available from three primary sources depending on the time period: the Decennial Census, the American Community Survey, and the Internal Revenue Service's (IRS) county-to-county migration data (described in detail in the corresponding section below). The IRS migration data are a pioneering use of administrative records to estimate demographic processes and are available on an annual basis since 1990. Because of the annual availability, relatively long time series, large universe due to the administrative records, and long history of use, the IRS data are an attractive data source for conducting migration research in the United States (e.g. [@curtis2015recovery;@molloy2011internal;@shumway2001spatial;@frey2009great]). Unfortunately, these data exist in seven legacy formats, split between 2,000+ data files making analysis with this data rather burdensome and has likely hindered the widespread adoption of this valuable resource for US migration scholarship.
 
-To encourage and facilitate the use of this tremendous migration resource, we make two contributions: (1) we publish a single, flat, standardized data file containing all county-to-county migration flows for the period 1990-2010, and (2) we publish the open-source R code used to process the IRS data into the single, flat, standardized data file for reproducibility, transparency, and educational purposes. By publishing both the migration data itself and the R code to collate, process, and flatten the IRS migration data, our hope is to save time and effort for other migration scholars and facilitate the use of this data. Scholars who wish to use these data should still familiarize themselves with the strengths and weaknesses, idiosyncrasies, and design of these data (see [@gross2005internal; @engels1981measuring;@franklin2006pandora;@pierce2015soi] for discussions on the IRS data) and with the procedures outlined in this document and in the corresponding R code^[The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository located at https://github.com/blinded/for-peer-review].
+To encourage and facilitate the use of this tremendous migration resource, we make two contributions: (1) we publish a single, flat, standardized data file containing all county-to-county 1-year migration flows for the period 1990-2010, and (2) we publish the open-source R code used to process the IRS data into the single, flat, standardized data file for reproducibility, transparency, and educational purposes. Scholars who wish to use these data should still familiarize themselves with the strengths and weaknesses, idiosyncrasies, and design of these data (see [@gross2005internal; @engels1981measuring;@franklin2006pandora;@pierce2015soi] for discussions on the IRS data) and with the procedures outlined in this document and in the corresponding R code^[The R code used to produce these data is available in the **Supplementary Materials** and can also be found in an online repository located at https://osf.io/wgcf3/?view_only=c5ba62fb4821421ea0621bfd0d723e61].
 
-We have attempted to introduce as little post-processing as possible to process the data into a common format. US Counties are fairly stable geographic units but some changes in county boundaries, names, and FIPS codes due occasionally occur^[The Federal Information Processing Standard Publication (FIPS) is a 5-digit code used to uniquely identify US counties and county equivalents.]. To try and keep as close to the original data fidelity as possible, we did not recode any geographic changes and present the IRS migration data as-is. For instance, Broomfield County, Colorado (FIPS 07014) was created out of parts of Adams, Boulder, Jefferson, and Weld counties in 2001 and thus has data only after 2002. Usees should be aware of any changes in county boundaries, county names, or FIPS changes that could substantially alter any analysis of this data^[More detailed information about county boundary, name, or FIPS changes can be found at the following locations https://www.census.gov/geo/reference/county-changes.html
+We have attempted to introduce as little post-processing as possible to process the data into a common format. US Counties are fairly stable geographic units but some changes in county boundaries, names, and FIPS codes due occasionally occur^[The Federal Information Processing Standard Publication (FIPS) is a 5-digit code used to uniquely identify US counties and county equivalents.]. To try and keep as close to the original data fidelity as possible, we did not recode any geographic changes and present the IRS migration data as-is. For instance, Broomfield County, Colorado (FIPS 08014) was created out of parts of Adams, Boulder, Jefferson, and Weld counties in 2001 and thus has data only after 2002. Users should be aware of any changes in county boundaries, county names, or FIPS changes that could substantially alter any analysis of this data^[More detailed information about county boundary, name, or FIPS changes can be found at the following locations https://www.census.gov/geo/reference/county-changes.html
 http://www.nber.org/asg/ASG_release/County_City/FIPS/FIPS_Changes.pdf
 https://www.cdc.gov/nchs/data/nvss/bridged_race/County_Geography_Changes.pdf
 https://www.ddorn.net/data/FIPS_County_Code_Changes.pdf].
 
-We organize the following document as follows. First, we describe the IRS county-to-county migration data to provide an overview of the data for scholars who might be unfamiliar with the IRS migration data. Second, we provide usage notes that provide important information that may assist other researchers who use our data. Third, we describe our single, flat, standardized file and document important nuances in the raw IRS migration data. Finally, we describe parts of the R code used to download the IRS migration data and process it into a common format.
+We organize the following document as follows. First, we describe the IRS county-to-county migration data to provide an overview of the data for scholars who might be unfamiliar with the IRS migration data. Second, we provide usage notes providing important information that may assist other researchers who want to use our data. Third, we describe our single, flat, standardized file and document important nuances in the raw IRS migration data. Finally, we describe parts of the R code used to download the IRS migration data and process it into a common format.
 
 The IRS migration data are an incredible tool for understanding migration. By providing these data in a readily available format and the subsequent open-source computer code used to process these data, we hope to facilitate their use in descriptive, exploratory, and analytical analyses of migration in the United States using administrative data. This data is particularly useful for understanding migration as a spatial entity and for investigating the evolution of migration systems over time.
 
 # IRS Migration Data
-The IRS began using tax data to estimate migration in the 1970s and 1980s [@engels1981measuring;@franklin2006pandora] and began releasing migration data in 1990. The IRS uses individual federal tax returns, matches these individual returns between two tax years (for instance tax year 2000 and tax year 2001), and identifies both migrants and non-migrants. Beginning with tax year 1991 (migration year 1990), the IRS produces these data in conjunction with the US Census Bureau using the IRS Individual Master File which contains every Form 1040, 1040A, and 1040EZ. Migration is identified when a current years' tax form contains an address that is different from the matched preceding years' return. A non-migrant is identified when there is no change in address between two years. For the 2002 tax year, the IRS migration data contained approximately 130 million returns [@gross2005internal].
+The IRS began using tax data to estimate migration in the 1970s and 1980s [@engels1981measuring;@franklin2006pandora] and began releasing migration data in 1990. The IRS uses individual federal tax returns, matches these individual returns between two tax years (for instance tax year 2000 and tax year 2001), and identifies both migrants and non-migrants. Beginning with tax year 1991 (migration year 1990), the IRS produces these data in conjunction with the US Census Bureau using the IRS Individual Master File which contains every Form 1040, 1040A, and 1040EZ [@gross2005internal]. Migration is identified when a current years' tax form contains an address that is different from the matched preceding years' return. A non-migrant is identified when there is no change in address between two years. For the 2002 tax year, the IRS migration data contained approximately 130 million returns [@gross2005internal].
 
 The annual series of county-to-county migration data cover 95 to 98 percent of the tax-filing universe (or approximately 87% of US households [@molloy2011internal]) and their dependents making these data the largest migration data source for count flows between counties in the United States. The IRS derives migration information from tax-filings making those who do not file taxes most likely to be underrepresented in the migration data [@gross2005internal; @dewaard2016population], namely undocumented populations, the poor, the elderly, and college students [@gross2005internal]. However, the overwhelming majority of householders file US tax returns in the United States [@molloy2011internal]. 
 
-The IRS reports a number of important variables in their data. They identify both the origin and destination counties; the number of total migrants who moved from county $i$ to county $j$; the number of non-migrants in origin county $i$; and the numbers of tax returns or filers associated with those moves (roughly analogous to the number of households and listed as the `returns` field in the raw data) and the numbers of tax exemptions associated with those moves (roughly analogous to the number of individuals and listed as the `exemptions` field in the raw data).
+The IRS reports a number of important variables in their data. They identify both the origin and destination counties; the number of tax returns or filers associated with those moves (roughly analogous to the number of households and listed as the `returns` field in the raw data) who moved from county $i$ to county $j$ and the number of tax exemptions associated with those moves (roughly analogous to the number of individuals and listed as the `exemptions` field in the raw data). They also report the number of non-migrants, reported as the number of tax returns and exemptions associated with migrants from county $i$ to county $i$. We treat the `exemptions` field as the total number of migrants. 
 
-Between 1990 and 2010, the IRS processed the county-to-county migration data using the same procedures. However, in 2011 the IRS introduced a new method for processing the migration data and introduced "enhancements" to improve the overall quality of the data [@pierce2015soi]. The IRS introduced three major changes. First, they began basing migration on a full year of data as opposed to a partial year of data. To meet Census Bureau deadlines, the IRS processed all income tax returns filed before the end of September and did not process the returns filed between the end of September and the end of the calendar year. Beginning with migration year 2011, the IRS included the approximately 4% of returns that are filed between the end of September and December 31, allowing the IRS to produce a full calendar years' worth of migration. Second, the IRS improved the year-to-year matching, increasing the number of matched returns by 5 percent. Third, the IRS began tabulating gross migration at the US State level by size of adjusted gross income (AGI) and the age of the primary taxpayer.
+Between 1990 and 2010, the IRS processed the county-to-county migration data using the same procedures. However, in 2011 the IRS introduced a new method for processing the migration data and introduced "enhancements" to improve the overall quality of the data [@pierce2015soi]. The IRS introduced three major changes. First, they began basing migration on a full year of data as opposed to a partial year of data. To meet Census Bureau deadlines, the IRS processed all income tax returns filed before the end of September and did not process the returns filed between the end of September and the end of the calendar year. Beginning with migration year 2011, the IRS included the approximately 4% of returns that are filed between the end of September and December 31, allowing the IRS to produce a full calendar years' worth of migration. Second, the IRS improved the year-to-year matching, increasing the number of matched returns by 5 percent. Prior to 2011, the IRS used only the primary filer's taxpayer identification number (TIN), potentially excluding individuals who may be listed as a dependent in year 1 but file on their own in year 2 or in cases where a secondary filer in year 1 (such as a spouse) files as a primary filer in year 2. After 2011, the IRS broadened their matching process to include primary, secondary, and dependent TINs to improve the matching process by 5 percent. Third, the IRS began tabulating gross migration at the US State level by size of adjusted gross income (AGI) and the age of the primary taxpayer.
 
 These changes to the processing of returns create a break in the historic time series. For this reason, we limit the data we process to the period 1990-2010, the last year before the new processing rules. If a scholar wishes to process any IRS migration data after 2010, the R code that we provide can be easily adapted to do so.
 
+## Comparisons to other US migration data
+
+As stated in the preceding section, the three main sources of migration data in the US are the Decennial Census long form, the American Community Survey, and the IRS county-to-county migration data.
+
+Up to and including Census 2000, on the long form of the Decennial Census the Census Bureau asked "Where did you live five years ago?" providing 5-year migration data once every decade. With the discontinuation of the long-form with Census 2010, the Census Bureau began collecting migration information on the American Community Survey (ACS) with the question "Where did you live one year ago?" providing 1-year migration data with each ACS release. 
+
+The Decennial long-form was a robust sample, gsurveying approximately one in every six or 16.7% of US households. The ACS is a smaller survey with a sample size of approximately 2 million US households per year. Due to the smaller sample size, the Census Bureau pools responses 5-year averages for county-to-county migration data. Thus, ACS migration data represents 1-year migration data over a 5-year period. The Census Bureau processes the ACS migration data and releases county-to-county migration data sets on an annual basis reflecting the 5-year average (2010-2014, 2011-2015, etc.).
+
+The ACS migration products and the IRS migration data both have strengths and weaknesses. \autoref{CompTable} compares the ACS migration products with the IRS migration data in some key areas. The ACS universe is more complete than the IRS migration universe, however the ACS migration data contains approximately 2% of the observations in the IRS migration data. The IRS releases the migration data annually allowing annual comparisons while the Census Bureau suggests only non-overlapping 5-year products should be compared to eachother (ie 2005-2009 and 2010-2014) [@brown2009compass].
+
+\begin{table}
+\caption{Comparison between American Community Survey and IRS county-to-county migration data.}
+\label{CompTable}
+\resizebox{\textwidth}{!}{%
+\begin{tabularx}{\textwidth}{l|XX}
+\hline
+\textbf{Issue}                            & \textbf{ACS Migration Products}                                                                                                                                                                        & \textbf{IRS Migration Data}                \\
+\hline
+Sample Size                 & Approximately 2 million households per year                                                                                                   & 116 million+ households           \\ \hline
+Data universe               & Sample is all US households                                                                                                                                                                   & Universe is tax filing households \\ \hline
+Coverage period             & 2005-2016                                                                                                                                                                                     & 1990-2016                         \\ \hline
+Time period reported        & 5-year average                                                                                                                                                                                & Annual                            \\ \hline
+Demographic Characteristics & Each five-year product reports different sociodemographic characteristics (e.g. 2011-2015 contains age/sex/race/hispanic origin, 2010-2016 contains relationship, household type, and tenure) & No demographic characteristics \\
+\hline
+\end{tabularx}
+}
+\end{table}
+
+\autoref{samples} demonstrates detectable changes in migration flows for four sample counties. These four sample counties are just some of the easily detectable impacts of major US events such as Hurricane Katrina in 2005 [@curtis2015recovery] or the Great Recession. These migration changes are largely be undetectable in the ACS migration data or our ability to detect such changes is hampered by the 5-year release.
+
+While the IRS migration data allows for analysis of annual changes, the IRS migration data contains no sociodemographic information. The ACS and Decennial Census migration data, on the other hand, contain county-to-county migration information crossed by sociodemographic information for some releases.
+
+```{r samples, echo=FALSE, results='asis', cache=FALSE, message=FALSE, warning=FALSE, fig.cap=paste("**Sample migration streams from the IRS migration data.**  The annual release of the IRS migration data allows for detection of changes. The effect of Hurricane Katrina on New Orleans LA (a) is clearly visible; the moderate effect of the US housing bubble burst and Great Recession is detectable in Broward FL (b) and a much greater effect in Clark NV (c); and even migration streams nearly uneffected by major US changes is also detectable (d). These are just a few examples of what is possible with the IRS migration data.\\label{samples}") }
+
+library(plyr)
+library(cowplot)
+migdat<-read_tsv("DATA-PROCESSED/county_migration_data.txt")
+
+inmig <- filter(migdat, !origin == destination) %>%
+  group_by(destination) %>%
+  dplyr::select(-origin) %>%
+  summarise_all(sum) %>%
+  mutate(direction = "inmigrants") %>%
+  gather(Years, Migrants, `1990`:`2010`) %>%
+  dplyr::select(location = destination, everything())
+
+outmig <- filter(migdat, !origin == destination) %>%
+  group_by(origin) %>%
+  dplyr::select(-destination) %>%
+  summarise_all(sum)  %>%
+  mutate(direction = "outmigrants")%>%
+  gather(Years, Migrants, `1990`:`2010`) %>%
+  dplyr::select(location = origin, everything())
+
+migrants <- rbind(inmig, outmig) 
+
+dat <- data.frame(origin = as.character(unique(migdat$origin))) %>%
+  mutate(origin = as.character(origin))
+
+for(i in 3:(ncol(migdat)-1)){
+  func <- function(data){return(COR = cor(data[i], data[i+1]))}
+  # z[,cor(z[i],z[i+1]),by="origin"]
+  a<-ddply(migdat, .(origin), func)
+  dat <- full_join(dat, a)
+}
+
+figure <- function(this.fips, this.name){
+  a<- ggplot(data=migrants) +
+    geom_line(data=migrants[which(migrants$location %in% this.fips),], aes(x = Years, y = Migrants, group=direction, color = direction, linetype=direction)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
+    scale_linetype(name = "",
+                   labels = c("In Migrants", "Out Migrants")) +
+    scale_color_discrete(name = "",
+                         labels = c("In Migrants", "Out Migrants")) +
+    labs(title = paste0("FIPS: ", this.fips, this.name),
+         x = "Year",
+         y = "Exemptions/Migrants") +
+    NULL
+  return(a)
+}
+a<-figure("22071", " Orleans LA") + 
+  # annotate("text", x = "2002", y = 100000, label = "Hurricane Katrina")
+NULL
+b<-figure("12011", " Broward FL") + 
+  annotate("Rect",xmin="2006", xmax="2009", ymin=0, ymax=100000, alpha = 0.3) +
+  # annotate("text", x = "2007", y = 60000, label = "Housing Bubble Burst\n and \nGreat Recession")
+NULL
+c<-figure("32003", " Clark NV") +
+  annotate("Rect",xmin="2006", xmax="2009", ymin=0, ymax=100000, alpha = 0.3) +
+  # annotate("text", x = "2007", y = 30000, label = "Housing Bubble Burst\n and \nGreat Recession")
+NULL
+d<-figure("36047", " Kings NY") 
+e <- get_legend(d+ theme(legend.position="bottom"))
+
+top <- plot_grid(a+ theme(legend.position="none"),
+          b+ theme(legend.position="none"),
+          c+ theme(legend.position="none"),
+          d+ theme(legend.position="none"),
+          ncol=2, labels = "auto",
+          label_x = 0, label_y = 0, hjust = -0.5, vjust = -0.5)
+plot_grid(top, e, ncol=1, rel_heights = c(1,0.1))
+```
+
 # Usage Notes
-The dataset generated here provides detailed county-to-county migration data based on administrative records. Users of these data should be aware that although the data have been prepared in a transparent manner with documentation of their creation and post-processing, and with open-source computer code, little was done to post-process the data to correct any possible inconsistencies or errors. These data should be used only with full awareness of the inherent limitations of the IRS migration data and with the knowledge of the procedures outlined in this document and in the corresponding R code. Caveat emptor -- users beware. 
+The dataset generated here provides detailed county-to-county 1-year migration data based on administrative records. Users of these data should be aware that although the data have been prepared in a transparent manner with documentation of their creation and post-processing, and with open-source computer code, little was done to post-process the data to correct any possible inconsistencies or errors. These data should be used only with full awareness of the inherent limitations of the IRS migration data and with the knowledge of the procedures outlined in this document and in the corresponding R code. Caveat emptor -- users beware. 
 
 Users should be aware of several limitations of the IRS data. Namely, that any origin-destination pair with fewer than 10 tax filers is censored or suppressed by the IRS for privacy reasons. We have collected these censored flows into a unique FIPS code (FIPS 99999) by subtracting all uncensored flows from the total number of migrants. Any origin-destination pair with fewer than 10 tax filers over the entire period is thus excluded from the final datafile since no data would be recorded in the IRS datafile due to censoring. 
 
@@ -114,7 +200,7 @@ Users should also be mindful of possible geographic changes to county boundaries
 
 The county migration data we present come from the `exemptions` field of the IRS migration data. The original IRS migration data contains two consistent fields across all years of data: a `returns` field and an `exemptions` field. Returns are the number of tax returns filed while exemptions are a proxy for the members of the household. We use the number of exemptions to better mimic the number of individuals migrating rather than the number of households.
 
-**Table 1** demonstrates the general structure of our flat migration data file.
+**Table 2** demonstrates the general structure of our flat migration data file.
 
 | Origin | Destination | 1990  | 1991  | 1992  | ... | 2010  |
 |--------|-------------|-------|-------|-------|-----|-------|
@@ -124,20 +210,35 @@ The county migration data we present come from the `exemptions` field of the IRS
 | 01001  | 01021       | 101   | 94    | 112   | ... | 149   |
 | ...    | ...         | ...   | ...   | ...   | ... | ...   |
 | 01001  | 99999       | 1324  | 1020  | 1200  | ... | 1758  |
-Table: Selected file format for the final flat file. Origin and Destinations are the five-digit FIPS codes with 99999 representing all flows with fewer than 10 filers. The counts represent the number of `exemptions` in the IRS data.
+Table: Extract from the final migration data file. Origins and Destinations are the five-digit FIPS codes with 99999 representing all destinations with flows fewer than 10 filers. The counts represent the number of `exemptions` in the IRS data. Non-migrants are identified as having the same FIPS in the Origin and Destination fields.
 
 
 
 # Data Processing
-The IRS migration data for the period 1990-2010 are available in seven legacy formats. **Table 2** summarizes some of the similarities and differences in these formats. For every year, the IRS publishes approximately 104 data files. (52 state entities by in/out-migration. Some years contain .csv and .dat summary files.) The underlying file organization, file format, naming schema, and coding can differ between these legacy formats. Migration years 1990 and 1991 are available as fixed-width text files, while 1992-2010 are available as excel files. For years 1990-2003, the IRS separated in/out migration into separate folders while 2004-2010 are published in a single folder. Each legacy format utilizes a different file naming scheme as well, making pattern matching of file names (called grepping) difficult. Importantly, the IRS treats non-migrants and total migrants differently in the seven legacy formats. For 1990 and 1991, the IRS simply has a field that reads "County Non-Migrants" for non-migrants; for 1992-1994, the IRS introduced a State code 63 but two different County codes (010 for 1992 and 1994 and 050 for 1993) creating a 5-digit FIPS code of 63010 or 63050. After 1995, the IRS smartly set the origin FIPS equal to the destination FIPS for non-migrants. Lastly, Total Migrants are treated differently too. For 1990 and 1991, the destination field simply reads "Total Migration." For 1992-1994, the IRS introduced a State Code 00 and county code 001 for total migrants. After 1995, the IRS used State Code 96 and county Code 000 for a combined 5-digit FIPS code of 96000.
+The IRS migration data for the period 1990-2010 are available in seven legacy formats. \autoref{diffTable} summarizes some of the similarities and differences in these formats. For every year, the IRS publishes approximately 104 data files. (52 state entities by in/out-migration. These are the 50 US states, DC, and a total US migration. Some years contain .csv and .dat summary files. The underlying file organization, file format, naming schema, and coding can differ between these legacy formats. Migration years 1990 and 1991 are available as fixed-width text files, while 1992-2010 are available as excel files. For years 1990-2003, the IRS separated in/out migration into separate folders while 2004-2010 are published in a single folder. Each legacy format utilizes a different file naming scheme as well, making pattern matching of file names (called grepping) difficult. Importantly, the IRS treats non-migrants and total migrants differently in the seven legacy formats. For 1990 and 1991, the IRS simply has a field that reads "County Non-Migrants" for non-migrants; for 1992-1994, the IRS introduced a State code 63 but two different County codes (010 for 1992 and 1994 and 050 for 1993) creating a 5-digit FIPS code of 63010 or 63050. After 1995, the IRS smartly set the origin FIPS equal to the destination FIPS for non-migrants. Lastly, Total Migrants are treated differently too. For 1990 and 1991, the destination field simply reads "Total Migration." For 1992-1994, the IRS introduced a State Code 00 and county code 001 for total migrants. After 1995, the IRS used State Code 96 and county Code 000 for a combined 5-digit FIPS code of 96000. \autoref{extracts} shows some sample extracts of the raw IRS migration data for 1990, 1993, 1997, and 2010.
 
-The differences described above and in **Table 2** are only some of the differences that are of interest to the data we produce here. Total Migrants, ie FIPS 96000 for migration data after 1995, is also broken down into Total Mig - US (FIPS 97000), Total Mig - US Same State (FIPS 97001), Total Mig - US Diff St (FIPS 97003), and Total Mig - Foreign (FIPS 98000). The IRS did not code these migration flows in this manner for all years, and in some cases (such as Total Mig - Foreign) migration flows are not reported. For simplicity and data continuity purposes, we simply create a new origin/destination (FIPS 99999) that contains all unspecified migration flows. We do this by subtracting the number of enumerated migrants (the migration flows with greater than 10 migrants) from the total number of migrants. This way, the sum of all enumerated migrants in our dataset will equal the total number of migrants in the IRS dataset. And the sum of all migrants and non-migrants for any origin in a given year should roughly approximate the county population estimate for that year.
+```{r extracts, echo=FALSE, results='asis', cache=FALSE, message=FALSE, warning=FALSE, fig.cap=paste("**Sample extracts from the raw IRS migration data.** Here are four sample raw data extracts for 1990, 1993, 1997, and 2010. Notice all four have different file formats, structures, and coding schemes. \\label{extracts}") }
+
+library(cowplot)
+library(magick)
+extract_1990 <-  ggdraw() + draw_image(image_read('FIGURES/extract_1990.GIF'))
+extract_1993 <- ggdraw() + draw_image(image_read('FIGURES/extract_1993.GIF'))
+extract_1997 <- ggdraw() + draw_image(image_read('FIGURES/extract_1997.GIF'))
+extract_2010 <- ggdraw() + draw_image(image_read('FIGURES/extract_2010.GIF'))
+
+plot_grid(extract_1990,extract_1993, extract_1997, extract_2010)
+```
+
+The differences described above and in \autoref{diffTable} are only some of the differences that are of interest to the data we produce here. Total Migrants, ie FIPS 96000 for migration data after 1995, is also broken down into Total Mig - US (FIPS 97000), Total Mig - US Same State (FIPS 97001), Total Mig - US Diff St (FIPS 97003), and Total Mig - Foreign (FIPS 98000). The IRS did not code these migration flows in this manner for all years, and in some cases (such as Total Mig - Foreign) migration flows are not reported. For simplicity and data continuity purposes, we simply create a new origin/destination (FIPS 99999) that contains all unspecified migration flows. We do this by subtracting the number of enumerated migrants (the migration flows with greater than 10 migrants) from the total number of migrants. This way, the sum of all enumerated migrants in our dataset will equal the total number of migrants in the IRS dataset. And the sum of all migrants and non-migrants for any origin in a given year should roughly approximate the county population estimate for the previous year.
+
+
+
 
 The aggregation to FIPS 99999 is the only mathematical post-processing of the IRS data.
 
 \begin{table}
 \caption{Select differences in the file formats, file organizations, naming, and treatment of various migration statistics.}
-\label{my-label}
+\label{diffTable}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llllll}
 \hline
@@ -156,16 +257,16 @@ The aggregation to FIPS 99999 is the only mathematical post-processing of the IR
 
 ## R Code
 
-The R code used to produce these data is available in the **Supplementary Materials** and in an online repository^[https://github.com/blinded/for-peer-review]. The code makes use of multi-core processing to speed up computation time. There are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt`, contains the # of exemptions and can be either downloaded at github or produced by running the R code.
+The R code used to produce these data is available in the **Supplementary Materials** and in an online repository^[https://osf.io/wgcf3/?view_only=c5ba62fb4821421ea0621bfd0d723e61]. The code makes use of multi-core processing to speed up computation time. There are three main sections in the code: A setup section; a data download section; and a data processing section. The final flat file, `county_migration_data.txt`, contains the # of exemptions and can be either downloaded at github or produced by running the R code.
 
 ## Setup 
-The script `000-libraries.R` simply sets up the R workspace to facilitate the data processing The appropriate R packages are downloaded and installed if the user does not already have these packages installed. The parallel computing environment is also set up as `DetectCores() - 1` to ensure one user core is left for other tasks that the computer might need. A single reference tab separated (tsv) file is required in this section and is loaded into the local environment. `ref_state.tsv` contains FIPS code information for US states. we simply add an additional FIPS code for 'unknown' and assign it FIPS state 99.
+The script `000-libraries.R` simply sets up the R workspace to facilitate the data processing. The appropriate R packages are downloaded and installed if the user does not already have these packages installed. The parallel computing environment is also set up as `DetectCores() - 1` to ensure the computer has appropriate resources for other tasks. The script requires a single reference tab separated (tsv) file in this section and we load it into the local environment. `ref_state.tsv` contains FIPS code information for US states. we simply add an additional FIPS state code for 'unknown' and assign it FIPS state 99.
 
 ## Data Download
-The script `001-download_data.R` will download and unzip the migration data from the IRS' websites into a folder standardized format into subdirectory `MigData/.` The IRS data is in two primary formats: 1990-2003 and 2004-onward. The IRS includes eight files in their zip archives that contain no data (these are in years 1998, 1999, 2000, and 2001). After being downloaded and unzipped, these files are then deleted. If they are not deleted, they will cause the subsequent `for loops` to fail in the next section. These files do not contain any migration information, their names suggest they represent aggregation of migration flows (for example 'co990usi.xls' suggests county (co) years 1999-2000 (990) for US (us) in-migration (i)), and we are unsure exactly why these files are included or their purpose.
+The script `001-download_data.R` will download and unzip the migration data from the IRS' websites into a folder standardized format into subdirectory `MigData/.` The IRS data is in two primary formats: 1990-2003 and 2004-onward. The IRS includes eight files in their zip archives that contain no data (these are in years 1998, 1999, 2000, and 2001). We delete these files after downloading and unzipping them. If they are not deleted, they will cause the subsequent `for loops` to fail in the next section. These files do not contain any migration information, their names suggest they represent aggregation of migration flows (for example 'co990usi.xls' suggests county (co) years 1999-2000 (990) for US (us) in-migration (i)), and we are unsure exactly why the IRS included these files or their purpose.
 
 ## Data Processing
-The third and final section contains several `foreach` parallel processing loops to process the seven legacy formats into a common data format. These files are then row-bound using `rbindlist` and transformed into a 'short' data frame. **Table 1** demonstrates the general file layout. In- and out-migration files are processed separately and only unique dyadic flows are kept in the file flat file.
+The third and final section contains several `foreach` parallel processing loops to process the seven legacy formats into a common data format. These files are then row-bound using `rbindlist` and transformed into a 'short' data frame. **Table 2** demonstrates the general file layout. We process the in- and out-migration files separately and keep only unique dyadic in the final flat file.
 
 
 

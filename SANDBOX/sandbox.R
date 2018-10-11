@@ -35,12 +35,35 @@ figure <- function(this.fips, this.name){
     geom_line(data=migrants[which(migrants$location %in% this.fips),], aes(x = Years, y = Migrants, group=direction, color = direction, linetype=direction)) +
     theme_bw() +
     theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
+    scale_linetype(name = "",
+                   labels = c("In Migrants", "Out Migrants")) +
+    scale_color_discrete(name = "",
+                         labels = c("In Migrants", "Out Migrants")) +
     labs(title = paste0("FIPS: ", this.fips, this.name),
          x = "Year",
          y = "Exemptions/Migrants") +
     NULL
   return(a)
 }
+a<-figure("22071", " Orleans LA") + annotate("text", x = "2002", y = 100000, label = "Hurricane Katrina →")
+b<-figure("12011", " Broward FL") + 
+  annotate("Rect",xmin="2006", xmax="2009", ymin=0, ymax=100000, alpha = 0.3) +
+  annotate("text", x = "2007", y = 60000, label = "Housing Bubble Burst\n and \nGreat Recession")
+
+c<-figure("32003", " Clark NV") +
+  annotate("Rect",xmin="2006", xmax="2009", ymin=0, ymax=100000, alpha = 0.3) +
+  annotate("text", x = "2007", y = 30000, label = "Housing Bubble Burst\n and \nGreat Recession")
+
+d<-figure("36047", " Kings NY") 
+e <- get_legend(d+ theme(legend.position="bottom"))
+
+top <- plot_grid(a+ theme(legend.position="none"),
+          b+ theme(legend.position="none"),
+          c+ theme(legend.position="none"),
+          d+ theme(legend.position="none"),
+          ncol=2)
+plot_grid(top, e, ncol=1, rel_heights = c(1,0.1))
+
 
 a <- figure("16015", " Boise ID")
 b <- figure("13125", " Glascock GA")
