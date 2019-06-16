@@ -79,3 +79,8 @@ unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationIn
 unlink("MigData/2000to2001/2000to2001CountyMigration/2000to2001CountyMigrationOutflow/co001usor.xls")
 unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationInflow/co102usi.xls")
 unlink("MigData/2001to2002/2001to2002CountyMigration/2001to2002CountyMigrationOutflow/co102uso.xls")
+## These files are the only years that contain foreign migration. It's a double accounting.
+unlink("MigData/1990to1991/1990to1991CountyMigration/1990to1991CountyMigrationInflow/C9091fri.txt") 
+unlink("MigData/1990to1991/1990to1991CountyMigration/1990to1991CountyMigrationOutflow/C9091fro.txt")
+unlink("MigData/1991to1992/1991to1992CountyMigration/1991to1992CountyMigrationInflow/C9192fri.txt")
+unlink("MigData/1991to1992/1991to1992CountyMigration/1991to1992CountyMigrationOutflow/C9192fro.txt")
